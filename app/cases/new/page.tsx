@@ -39,16 +39,16 @@ export default function NewCasePage() {
             >
               <div className="grid gap-2">
                 <Label htmlFor="title">Item title</Label>
-                <Input id="title" placeholder="Sony A7 IV weekend rental" required />
+                <Input id="title" placeholder="Item name and handoff purpose" required />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="category">Category</Label>
-                  <Input id="category" placeholder="Camera gear" required />
+                  <Input id="category" placeholder="Item category" required />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="deposit">Deposit in GEN</Label>
-                  <Input id="deposit" type="number" min="0" placeholder="420" required />
+                  <Input id="deposit" type="number" min="0" placeholder="Deposit amount" required />
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
@@ -70,7 +70,7 @@ export default function NewCasePage() {
                 <Input id="photo" type="url" placeholder="https://…" required />
               </div>
               <Button type="submit" size="lg" disabled={!wallet.address}>
-                <FilePlus2 className="h-4 w-4" /> Simulate create_handoff
+                <FilePlus2 className="h-4 w-4" /> Create handoff
               </Button>
               {!wallet.address ? <p className="text-sm text-vault-950/70">Choose injected or browser wallet before writing.</p> : null}
             </form>

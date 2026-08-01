@@ -1,19 +1,15 @@
 import { Activity, Camera, Coins, Scale } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CaseCard } from "@/components/case-card";
-import { demoCases } from "@/lib/mock-data";
 import { formatGen } from "@/lib/utils";
+import { contractAddress } from "@/lib/config";
 
 export default function DashboardPage() {
-  const totalDeposits = demoCases.reduce((sum, item) => sum + item.deposit, 0);
-  const underReview = demoCases.filter((item) => item.status === "under_review").length;
-  const evidence = demoCases.reduce((sum, item) => sum + item.pickupEvidence + item.returnEvidence, 0);
   const stats: Array<[string, string | number, LucideIcon]> = [
-    ["Open cases", demoCases.length, Activity],
-    ["Deposits tracked", formatGen(totalDeposits), Coins],
-    ["Evidence items", evidence, Camera],
-    ["Under review", underReview, Scale],
+    ["Open cases", 0, Activity],
+    ["Deposits tracked", formatGen(0), Coins],
+    ["Evidence items", 0, Camera],
+    ["Under review", 0, Scale],
   ];
 
   return (
@@ -30,9 +26,18 @@ export default function DashboardPage() {
           </Card>
         ))}
       </section>
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {demoCases.map((item) => <CaseCard key={item.id} item={item} />)}
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Live contract source</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm leading-6 text-vault-950/75">
+            Local seed metrics have been removed. Wire this dashboard to `get_cases`, `get_case`, and `get_evidence`
+            on the deployed contract to show live counts.
+          </p>
+          <p className="mt-3 break-all font-mono text-xs text-vault-950/70">{contractAddress || "No contract configured"}</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

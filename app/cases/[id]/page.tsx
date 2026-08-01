@@ -1,37 +1,32 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Camera, Coins, FileWarning, ShieldCheck } from "lucide-react";
+import { Camera, FileWarning, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/status-badge";
 import { TxStatus } from "@/components/tx-status";
-import { demoCases, demoEvidence } from "@/lib/mock-data";
-import { formatGen, shortAddress } from "@/lib/utils";
+import { contractAddress } from "@/lib/config";
 
 export default async function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const item = demoCases.find((entry) => entry.id === Number(id));
-  if (!item) notFound();
-  const evidence = demoEvidence.filter((entry) => entry.caseId === item.id);
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.24em] text-amberline">Case #{item.id}</p>
-          <h1 className="mt-2 text-4xl font-black">{item.title}</h1>
-          <p className="mt-3 text-vault-200">
-            Lender {shortAddress(item.lender)} · Borrower {shortAddress(item.borrower)}
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-amberline">Case #{id}</p>
+          <h1 className="mt-2 text-4xl font-black">Live case detail</h1>
+          <p className="mt-3 max-w-2xl text-vault-200">
+            Local seed data has been removed. This route is reserved for `get_case(&quot;{id}&quot;)` from the deployed Custodi contract.
           </p>
         </div>
-        <StatusBadge status={item.status} />
+        <StatusBadge status="draft" />
       </div>
 
       <section className="grid gap-4 md:grid-cols-4">
-        <Card><CardHeader><CardTitle>Deposit</CardTitle></CardHeader><CardContent><p className="text-2xl font-black">{formatGen(item.deposit)}</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Category</CardTitle></CardHeader><CardContent><p>{item.category}</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Pickup proofs</CardTitle></CardHeader><CardContent><p className="text-2xl font-black">{item.pickupEvidence}</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Return proofs</CardTitle></CardHeader><CardContent><p className="text-2xl font-black">{item.returnEvidence}</p></CardContent></Card>
+        <Card><CardHeader><CardTitle>Deposit</CardTitle></CardHeader><CardContent><p className="text-2xl font-black">—</p></CardContent></Card>
+        <Card><CardHeader><CardTitle>Category</CardTitle></CardHeader><CardContent><p>—</p></CardContent></Card>
+        <Card><CardHeader><CardTitle>Pickup proofs</CardTitle></CardHeader><CardContent><p className="text-2xl font-black">0</p></CardContent></Card>
+        <Card><CardHeader><CardTitle>Return proofs</CardTitle></CardHeader><CardContent><p className="text-2xl font-black">0</p></CardContent></Card>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -40,18 +35,9 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
             <CardTitle>Evidence trail</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="divide-y divide-vault-700/20">
-              {evidence.map((entry) => (
-                <div key={entry.id} className="grid gap-2 py-4 first:pt-0 last:pb-0">
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="font-semibold">{entry.kind.replaceAll("_", " ")}</p>
-                    <p className="font-mono text-xs text-vault-950/60">{new Date(entry.submittedAt).toLocaleString()}</p>
-                  </div>
-                  <p className="text-sm text-vault-950/75">{entry.note}</p>
-                  <a className="truncate font-mono text-xs text-vault-700 underline" href={entry.url}>{entry.url}</a>
-                </div>
-              ))}
-            </div>
+            <p className="text-sm leading-6 text-vault-950/75">
+              No bundled evidence. Render `get_evidence(&quot;{id}&quot;)` here once live reads are connected.
+            </p>
           </CardContent>
         </Card>
 
@@ -61,28 +47,13 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
               <CardTitle>Consensus verdict</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {item.verdict ? (
-                <>
-                  <p className="text-sm uppercase tracking-[0.18em] text-vault-700">{item.verdict.class.replaceAll("_", " ")}</p>
-                  <p className="text-sm leading-6 text-vault-950/75">{item.verdict.reasoning}</p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="rounded-md border border-vault-700/20 p-3">
-                      <Coins className="mb-1 h-4 w-4" />
-                      Borrower {formatGen(item.verdict.releaseToBorrower)}
-                    </div>
-                    <div className="rounded-md border border-vault-700/20 p-3">
-                      <Coins className="mb-1 h-4 w-4" />
-                      Lender {formatGen(item.verdict.releaseToLender)}
-                    </div>
-                  </div>
-                  <p className="text-sm font-semibold">Confidence {item.verdict.confidence}%</p>
-                </>
-              ) : (
-                <p className="text-sm text-vault-950/75">No verdict yet. Return evidence must be submitted before consensus review.</p>
-              )}
+              <p className="text-sm text-vault-950/75">
+                No local verdict. Return evidence and consensus results should come from contract state.
+              </p>
+              <p className="break-all font-mono text-xs text-vault-950/70">{contractAddress || "No contract configured"}</p>
             </CardContent>
           </Card>
-          <TxStatus current={item.status === "under_review" ? "REVEALING" : "FINALIZED"} />
+          <TxStatus current="PENDING" />
           <div className="flex flex-wrap gap-2">
             <Link href="/evidence"><Button variant="secondary"><Camera className="h-4 w-4" /> Add evidence</Button></Link>
             <Button variant="outline"><ShieldCheck className="h-4 w-4" /> Request review</Button>
