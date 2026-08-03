@@ -4,6 +4,7 @@ const stages = ["PENDING", "PROPOSING", "COMMITTING", "REVEALING", "ACCEPTED", "
 
 export function TxStatus({ current = "PROPOSING" }: { current?: string }) {
   const currentIndex = stages.indexOf(current);
+  const isFinalized = current === "FINALIZED";
   const isRetryable = ["UNDETERMINED", "VALIDATORS_TIMEOUT", "LEADER_TIMEOUT"].includes(current);
 
   if (isRetryable) {
@@ -19,8 +20,8 @@ export function TxStatus({ current = "PROPOSING" }: { current?: string }) {
   return (
     <div className="grid gap-2 rounded-lg border border-vault-300/15 bg-vault-900/80 p-4">
       {stages.map((stage, index) => {
-        const done = index < currentIndex;
-        const active = index === currentIndex;
+        const done = isFinalized ? index <= currentIndex : index < currentIndex;
+        const active = !isFinalized && index === currentIndex;
         const Icon = done ? CheckCircle2 : active ? Loader2 : current === "CANCELED" ? XCircle : Circle;
         return (
           <div key={stage} className="flex items-center gap-3 text-sm">

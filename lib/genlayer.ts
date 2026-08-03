@@ -34,7 +34,7 @@ export async function writeCustodi(identity: WriteIdentity, functionName: string
   const hash = await client.writeContract({ address: contractAddress as HexAddress, functionName, args: args as never[], value });
   const receipt = await client.waitForTransactionReceipt({
     hash,
-    status: TransactionStatus.ACCEPTED,
+    status: TransactionStatus.FINALIZED,
     interval: 5000,
     retries: 90,
   });

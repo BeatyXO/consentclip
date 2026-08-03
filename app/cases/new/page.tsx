@@ -13,7 +13,7 @@ import { explorerUrl } from "@/lib/config";
 import { writeCustodi } from "@/lib/genlayer";
 import { useWallet } from "@/lib/wallet";
 
-type SubmitStatus = "idle" | "submitting" | "accepted" | "error";
+type SubmitStatus = "idle" | "submitting" | "finalized" | "error";
 
 export default function NewCasePage() {
   const wallet = useWallet();
@@ -60,7 +60,7 @@ export default function NewCasePage() {
         BigInt(Math.trunc(depositNumber)),
       );
       setTxHash(result.hash);
-      setStatus("accepted");
+      setStatus("finalized");
     } catch (caught) {
       setStatus("error");
       setError(caught instanceof Error ? caught.message : "GenLayer transaction failed.");
@@ -131,7 +131,7 @@ export default function NewCasePage() {
               {error ? <p className="rounded-md border border-rustline/40 bg-rustline/10 p-3 text-sm text-rustline">{error}</p> : null}
               {txHash ? (
                 <div className="rounded-md border border-vault-700/20 bg-vault-100/60 p-3 text-sm text-vault-950/75">
-                  <p className="font-semibold text-vault-950">Handoff creation transaction accepted.</p>
+                  <p className="font-semibold text-vault-950">Handoff creation transaction finalized.</p>
                   <Link className="mt-1 block break-all font-mono text-xs underline" href={`${explorerUrl}/transactions/${txHash}`} target="_blank">
                     {txHash}
                   </Link>
@@ -154,7 +154,7 @@ export default function NewCasePage() {
           </CardContent>
         </Card>
         {status === "submitting" ? <TxStatus current="PROPOSING" /> : null}
-        {status === "accepted" ? <TxStatus current="ACCEPTED" /> : null}
+        {status === "finalized" ? <TxStatus current="FINALIZED" /> : null}
       </aside>
     </div>
   );
