@@ -93,7 +93,7 @@ export function WalletButton() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 flex w-[190px] flex-col gap-1 rounded-lg border border-vault-300/15 bg-vault-900/95 p-1 shadow-2xl shadow-black/40 backdrop-blur">
+        <div className="absolute right-0 top-12 z-[200] flex w-[190px] flex-col gap-1 rounded-lg border border-vault-300/15 bg-vault-900/95 p-1 shadow-2xl shadow-black/40 backdrop-blur">
           <MiniButton active={mode === "injected"} onClick={closeAfter(connectInjected)}>
             <PlugZap className="h-3.5 w-3.5" /> Injected
           </MiniButton>
