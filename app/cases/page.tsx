@@ -7,74 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CaseCard } from "@/components/case-card";
 import { contractAddress } from "@/lib/config";
+import { parseContractList, toCustodyCase, type ContractCase } from "@/lib/custodi-contract";
 import { readCustodi } from "@/lib/genlayer";
-import type { CustodyCase, CustodyStatus, DamageVerdict } from "@/lib/types";
-
-type ContractCase = {
-  id?: string;
-  title?: string;
-  category?: string;
-  lender?: string;
-  borrower?: string;
-  deposit?: string;
-  status?: string;
-  due_at?: string;
-  created_at?: string;
-  verdict_class?: string;
-  release_to_borrower?: string;
-  release_to_lender?: string;
-  confidence?: number;
-  reasoning?: string;
-};
-
-const statuses: CustodyStatus[] = [
-  "draft",
-  "awaiting_borrower",
-  "active",
-  "return_submitted",
-  "under_review",
-  "released",
-  "partial_release",
-  "slashed",
-  "undetermined",
-];
-
-const verdicts: DamageVerdict[] = ["no_new_damage", "minor_wear", "material_damage", "undetermined"];
-
-function parseCases(value: unknown): ContractCase[] {
-  if (Array.isArray(value)) return value as ContractCase[];
-  if (typeof value !== "string" || value.trim() === "") return [];
-  const parsed = JSON.parse(value) as unknown;
-  return Array.isArray(parsed) ? (parsed as ContractCase[]) : [];
-}
-
-function toCase(item: ContractCase): CustodyCase {
-  const status = statuses.includes(item.status as CustodyStatus) ? (item.status as CustodyStatus) : "draft";
-  const verdictClass = verdicts.includes(item.verdict_class as DamageVerdict) ? (item.verdict_class as DamageVerdict) : undefined;
-
-  return {
-    id: Number(item.id ?? 0),
-    title: item.title ?? "Untitled handoff",
-    category: item.category ?? "Uncategorized",
-    lender: item.lender ?? "",
-    borrower: item.borrower ?? "",
-    deposit: Number(item.deposit ?? 0),
-    status,
-    startedAt: item.created_at ?? "",
-    dueAt: item.due_at ?? "",
-    pickupEvidence: 0,
-    returnEvidence: 0,
-    verdict: verdictClass
-      ? {
-          class: verdictClass,
-          releaseToBorrower: Number(item.release_to_borrower ?? 0),
-          releaseToLender: Number(item.release_to_lender ?? 0),
-          confidence: Number(item.confidence ?? 0),
-          reasoning: item.reasoning ?? "",
-        }
-      : undefined,
-  };
-}
+import type { CustodyCase } from "@/lib/types";
 
 export default function CasesPage() {
   const [cases, setCases] = useState<CustodyCase[]>([]);
@@ -93,7 +28,7 @@ export default function CasesPage() {
       setLoading(true);
       setError(undefined);
       const result = await readCustodi("get_cases", [100]);
-      setCases(parseCases(result).map(toCase).filter((item) => item.id > 0));
+      setCases(parseContractList<ContractCase>(result).map((item) => toCustodyCase(item)).filter((item) => item.id > 0));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not read Custodi cases from GenLayer.");
     } finally {
