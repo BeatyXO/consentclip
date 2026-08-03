@@ -11,6 +11,8 @@ type WalletContextValue = {
   privateKey?: string;
   connectInjected: () => Promise<void>;
   ensureBrowserWallet: () => void;
+  disconnect: () => void;
+  deleteBrowserWallet: () => void;
   exportPrivateKey: () => void;
   importPrivateKey: (value: string) => void;
 };
@@ -90,8 +92,33 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     setMode("browser");
   }
 
+  function disconnect() {
+    setAddress(undefined);
+    setPrivateKey(undefined);
+    setMode("none");
+  }
+
+  function deleteBrowserWallet() {
+    const ok = window.confirm(
+      "Delete the saved Custodi browser wallet from this browser? Export it first if you want to keep this identity.",
+    );
+    if (!ok) return;
+    window.localStorage.removeItem(STORAGE_KEY);
+    disconnect();
+  }
+
   const value = useMemo(
-    () => ({ address, mode, privateKey, connectInjected, ensureBrowserWallet, exportPrivateKey, importPrivateKey }),
+    () => ({
+      address,
+      mode,
+      privateKey,
+      connectInjected,
+      ensureBrowserWallet,
+      disconnect,
+      deleteBrowserWallet,
+      exportPrivateKey,
+      importPrivateKey,
+    }),
     [address, mode, privateKey],
   );
 
