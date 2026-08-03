@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TxStatus } from "@/components/tx-status";
 import { explorerUrl } from "@/lib/config";
-import { writeCustodi } from "@/lib/genlayer";
+import { formatGenLayerError, writeCustodi } from "@/lib/genlayer";
 import { useWallet } from "@/lib/wallet";
 
 type SubmitStatus = "idle" | "submitting" | "finalized" | "error";
@@ -63,7 +63,7 @@ export default function NewCasePage() {
       setStatus("finalized");
     } catch (caught) {
       setStatus("error");
-      setError(caught instanceof Error ? caught.message : "GenLayer transaction failed.");
+      setError(formatGenLayerError(caught));
     }
   }
 

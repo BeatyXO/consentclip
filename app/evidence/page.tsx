@@ -18,7 +18,7 @@ import {
   type ContractCase,
   type ContractEvidence,
 } from "@/lib/custodi-contract";
-import { readCustodi, writeCustodi } from "@/lib/genlayer";
+import { formatGenLayerError, readCustodi, writeCustodi } from "@/lib/genlayer";
 import type { CustodyCase, EvidenceItem } from "@/lib/types";
 import { shortAddress } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet";
@@ -119,6 +119,18 @@ export default function EvidencePage() {
     const url = String(form.get("url") ?? "").trim();
     const note = String(form.get("note") ?? "").trim();
 
+    if (url.length < 12 || url.length > 300 || !url.startsWith("http")) {
+      setStatus("error");
+      setError("Evidence URL must be a public http(s) URL between 12 and 300 characters.");
+      return;
+    }
+
+    if (note.length > 500) {
+      setStatus("error");
+      setError("Evidence note is too long for the contract. Keep it at 500 characters or less.");
+      return;
+    }
+
     const identity =
       wallet.mode === "browser" && wallet.privateKey
         ? ({ mode: "browser", privateKey: wallet.privateKey } as const)
@@ -133,7 +145,7 @@ export default function EvidencePage() {
       await loadEvidence(caseId);
     } catch (caught) {
       setStatus("error");
-      setError(caught instanceof Error ? caught.message : "Evidence transaction failed.");
+      setError(formatGenLayerError(caught, "Evidence transaction failed."));
     }
   }
 
@@ -186,11 +198,12 @@ export default function EvidencePage() {
 
             <div className="grid gap-2">
               <Label htmlFor="url">Public URL</Label>
-              <Input id="url" name="url" type="url" placeholder="https://…" required />
+              <Input id="url" maxLength={300} name="url" type="url" placeholder="https://…" required />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="note">Evidence note</Label>
-              <Textarea id="note" name="note" placeholder="What should validators compare or notice?" />
+              <Textarea id="note" maxLength={500} name="note" placeholder="What should validators compare or notice?" />
+              <p className="text-xs text-vault-950/60">Max 500 characters. Keep it factual; public URL content is what validators compare.</p>
             </div>
             <Button type="submit" disabled={!wallet.address || !selectedCaseId || status === "submitting"}>
               <Upload className="h-4 w-4" /> {status === "submitting" ? "Writing evidence…" : "Submit evidence"}
