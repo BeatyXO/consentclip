@@ -207,7 +207,8 @@ class Custodi(gl.Contract):
             raise gl.vm.UserError("EXPECTED_RETURN_EVIDENCE_REQUIRED")
 
         evidence_items = self._collect_case_evidence(case_id)
-        verdict = self._review_damage(case, evidence_items)
+        verdict_raw = self._review_damage(case, evidence_items)
+        verdict = self._parse_json(verdict_raw)
 
         verdict_class = str(verdict.get("verdict_class", "undetermined"))
         confidence = self._bounded_confidence(verdict.get("confidence", 0))
@@ -251,8 +252,11 @@ class Custodi(gl.Contract):
                 out.append(self._load(raw))
         return out
 
-    def _review_damage(self, case: typing.Any, evidence_items: typing.Any) -> typing.Any:
-        def leader() -> typing.Any:
+    def _review_damage(self, case: typing.Any, evidence_items: typing.Any) -> str:
+        case_title = str(case.get("title", ""))
+        baseline_note = str(case.get("baseline_note", ""))
+
+        def leader() -> str:
             fetched = []
             for item in evidence_items[:8]:
                 body = gl.nondet.web.render(item["url"], mode="text")
@@ -268,12 +272,12 @@ class Custodi(gl.Contract):
                 "Compare pickup evidence against return evidence for the same physical item. "
                 "Return JSON only with keys verdict_class, confidence, reasoning. "
                 "verdict_class must be one of no_new_damage, minor_wear, material_damage, undetermined. "
-                "Case title: " + str(case.get("title", "")) + ". "
-                "Baseline: " + str(case.get("baseline_note", "")) + ". "
+                "Case title: " + case_title + ". "
+                "Baseline: " + baseline_note + ". "
                 "Evidence: " + json.dumps(fetched)
             )
             result = gl.nondet.exec_prompt(prompt)
-            return self._parse_json(result)
+            return str(result)[:2000]
 
         return gl.eq_principle.prompt_comparative(leader, REVIEW_EQ_PRINCIPLE)
 

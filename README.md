@@ -47,15 +47,24 @@ npm run dev
 After deploying the contract to StudioNet, set:
 
 ```bash
-NEXT_PUBLIC_CUSTODI_CONTRACT_ADDRESS=0x30F4003bb5f0399ce7E4Dd4d8aC2b9D7c1A04d7B
+NEXT_PUBLIC_CUSTODI_CONTRACT_ADDRESS=0x5c7c148E4A6b9dac587F2912b97E378735E4525c
 NEXT_PUBLIC_GENLAYER_CHAIN=studionet
 ```
 
 StudioNet deployment:
 
-- Contract: `0x30F4003bb5f0399ce7E4Dd4d8aC2b9D7c1A04d7B`
-- Deploy transaction: `0xc1d51e2e63749963da1b02be3beb9d658b8cd041d7e0084353a18aa45615c2fa`
+- Contract: `0x5c7c148E4A6b9dac587F2912b97E378735E4525c`
+- Deploy transaction: `0xb7e023ac7e32c7eaaba8923f00c3b305201b6d852335153c7adfda00843e625d`
+
+Full-cycle StudioNet smoke test on the fixed contract:
+
+- `create_handoff`: `0xfe8d09663c23806a715804e638d47c6efd436cfe56137ec471b7ed6849b6dc32`
+- `accept_handoff`: `0xa02be370f440e8f7f9e8efbf224a9f5986ea514e45876d5a8924c1317cead73e`
+- `submit_pickup_evidence`: `0x4ee7e0e31294937d8dcafcec092e095b6f2b389f21c1d49937ea84743241368a`
+- `submit_return_evidence`: `0x0563baf5431433c08e633c032227215eb2c17b1307dd2d867b3074a91f62b583`
+- `request_damage_review`: `0x0e510b1a5eeb42f8be479be846a422d0222f668a36b8c40177ad28bc1cf68f20`
+- Final case state: `released`, `verdict_class: no_new_damage`, `release_to_borrower: 100`, `release_to_lender: 0`
 
 ## Current status
 
-This repository contains the first complete scaffold: UI, wallet model, GenLayer wrapper, decision record, and contract draft. The next hardening pass should run `genvm-lint`, add direct tests for every transition, deploy to StudioNet, then wire live reads/writes against the deployed schema.
+This repository contains the first complete scaffold: UI, wallet model, GenLayer wrapper, decision record, and a deployed contract verified through one full StudioNet damage-review cycle. The next hardening pass should add direct tests for every transition and wire live frontend reads/writes against the deployed schema.
