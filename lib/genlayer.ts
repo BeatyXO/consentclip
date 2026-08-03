@@ -1,7 +1,7 @@
 "use client";
 
 import { createAccount, createClient } from "genlayer-js";
-import { TransactionStatus } from "genlayer-js/types";
+import { ExecutionResult, TransactionStatus } from "genlayer-js/types";
 import { chain, chainName, contractAddress } from "@/lib/config";
 
 type HexAddress = `0x${string}`;
@@ -32,10 +32,16 @@ export async function readCustodi(functionName: string, args: CalldataValue[] = 
 export async function writeCustodi(identity: WriteIdentity, functionName: string, args: CalldataValue[] = [], value = 0n) {
   const client = await createWriteClient(identity);
   const hash = await client.writeContract({ address: contractAddress as HexAddress, functionName, args: args as never[], value });
-  return client.waitForTransactionReceipt({
+  const receipt = await client.waitForTransactionReceipt({
     hash,
     status: TransactionStatus.ACCEPTED,
     interval: 5000,
     retries: 90,
   });
+
+  if (receipt.txExecutionResultName === ExecutionResult.FINISHED_WITH_ERROR) {
+    throw new Error(`Contract execution failed for ${functionName}. Transaction: ${hash}`);
+  }
+
+  return { hash: hash as HexAddress, receipt };
 }
