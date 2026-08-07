@@ -34,7 +34,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     try {
       const [caseRaw, evidenceRaw] = await Promise.all([
         readCustodi("get_case", [Number(id)]),
-        readCustodi("get_case_evidence", [Number(id)]).catch(() => []),
+        readCustodi("get_evidence", [id]).catch(() => []),
       ]);
 
       const parsed =
