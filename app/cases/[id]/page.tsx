@@ -33,7 +33,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     setLoading(true);
     try {
       const [caseRaw, evidenceRaw] = await Promise.all([
-        readCustodi("get_case", [Number(id)]),
+        readCustodi("get_case", [String(id)]),
         readCustodi("get_evidence", [id]).catch(() => []),
       ]);
 
@@ -84,6 +84,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   const showRelease = item?.status === "return_submitted" && isLender;
   const showReview = item?.status === "return_submitted" && (isLender || isBorrower);
   const showDispute = item?.status === "return_submitted" && (isLender || isBorrower);
+  const showUnacceptedRecovery = item?.status === "awaiting_borrower" && isLender;
+  const showUndeterminedRecovery = item?.status === "undetermined" && (isLender || isBorrower);
 
   // ── render ──────────────────────────────────────────────────────────────────
   if (loading) {
@@ -250,7 +252,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             {showAccept ? (
               <Button
                 disabled={isBusy}
-                onClick={() => runWrite("accept_handoff", [item.id])}
+                onClick={() => runWrite("accept_handoff", [String(item.id)])}
               >
                 Accept handoff
               </Button>
@@ -268,7 +270,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               <Button
                 variant="outline"
                 disabled={isBusy}
-                onClick={() => runWrite("release_without_dispute", [item.id])}
+                onClick={() => runWrite("release_without_dispute", [String(item.id)])}
               >
                 <ShieldCheck className="h-4 w-4" /> Release deposit
               </Button>
@@ -279,7 +281,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               <Button
                 variant="outline"
                 disabled={isBusy}
-                onClick={() => runWrite("request_damage_review", [item.id])}
+                onClick={() => runWrite("request_damage_review", [String(item.id)])}
               >
                 <ShieldCheck className="h-4 w-4" /> Request review
               </Button>
@@ -290,9 +292,21 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               <Button
                 variant="danger"
                 disabled={isBusy}
-                onClick={() => runWrite("request_damage_review", [item.id])}
+                onClick={() => runWrite("request_damage_review", [String(item.id)])}
               >
                 <FileWarning className="h-4 w-4" /> Dispute return
+              </Button>
+            ) : null}
+
+            {showUnacceptedRecovery ? (
+              <Button variant="outline" disabled={isBusy} onClick={() => runWrite("recover_unaccepted", [String(item.id)])}>
+                Recover unaccepted deposit
+              </Button>
+            ) : null}
+
+            {showUndeterminedRecovery ? (
+              <Button variant="outline" disabled={isBusy} onClick={() => runWrite("recover_undetermined", [String(item.id)])}>
+                Recover inconclusive deposit
               </Button>
             ) : null}
           </div>

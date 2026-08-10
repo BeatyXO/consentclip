@@ -1,10 +1,20 @@
-# v0.2.20
+# v0.2.21
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 from genlayer import *
 
 import json
 import typing
+
+
+@gl.evm.contract_interface
+class _NativeRecipient:
+    """Minimal EVM interface used to transfer native GEN to an EOA."""
+    class View:
+        pass
+
+    class Write:
+        pass
 
 
 REVIEW_EQ_PRINCIPLE = """
@@ -90,6 +100,16 @@ class Custodi(gl.Contract):
             return 100
         return score
 
+    def _is_evm_address(self, value: typing.Any) -> bool:
+        address = str(value)
+        if len(address) != 42 or not address.startswith("0x"):
+            return False
+        try:
+            int(address[2:], 16)
+            return True
+        except Exception:
+            return False
+
     @gl.public.write.payable
     def create_handoff(
         self,
@@ -103,7 +123,7 @@ class Custodi(gl.Contract):
             raise gl.vm.UserError("EXPECTED_DEPOSIT_REQUIRED")
         if len(title.strip()) < 4 or len(title) > 120:
             raise gl.vm.UserError("EXPECTED_BAD_TITLE")
-        if len(borrower.strip()) < 10:
+        if not self._is_evm_address(borrower):
             raise gl.vm.UserError("EXPECTED_BAD_BORROWER")
         if len(baseline_note.strip()) < 12 or len(baseline_note) > 900:
             raise gl.vm.UserError("EXPECTED_BAD_BASELINE")
@@ -126,6 +146,8 @@ class Custodi(gl.Contract):
             "release_to_lender": "0",
             "confidence": 0,
             "reasoning": "",
+            "paid_to_borrower": "0",
+            "paid_to_lender": "0",
         }
         self.cases[case_id] = self._json(case)
         self.case_evidence_index[case_id] = ""
@@ -192,12 +214,16 @@ class Custodi(gl.Contract):
             raise gl.vm.UserError("EXPECTED_ONLY_LENDER")
         if case["status"] != "return_submitted" and case["status"] != "active":
             raise gl.vm.UserError("EXPECTED_NOT_RELEASABLE")
-        case["status"] = "released"
-        case["verdict_class"] = "no_new_damage"
-        case["release_to_borrower"] = case["deposit"]
-        case["release_to_lender"] = "0"
-        case["reasoning"] = "Lender released the deposit without requesting consensus."
-        self.cases[case_id] = self._json(case)
+        self._settle(
+            case_id,
+            case,
+            "released",
+            "no_new_damage",
+            self._safe_int(case["deposit"], 0),
+            0,
+            "Lender released the deposit without requesting consensus.",
+            0,
+        )
 
     @gl.public.write
     def request_damage_review(self, case_id: str):
@@ -232,13 +258,85 @@ class Custodi(gl.Contract):
             lender_amount = 0
             status = "undetermined"
 
+        self._settle(
+            case_id,
+            case,
+            status,
+            verdict_class,
+            borrower_amount,
+            lender_amount,
+            self._limit(verdict.get("reasoning", ""), 900),
+            confidence,
+        )
+
+    @gl.public.write
+    def recover_unaccepted(self, case_id: str):
+        """Return a deposit if the nominated borrower never accepted the handoff."""
+        case = self._require_case(case_id)
+        if self._sender() != case["lender"]:
+            raise gl.vm.UserError("EXPECTED_ONLY_LENDER")
+        if case["status"] != "awaiting_borrower":
+            raise gl.vm.UserError("EXPECTED_NOT_UNACCEPTED")
+        self._settle(
+            case_id,
+            case,
+            "recovered_unaccepted",
+            "unaccepted",
+            0,
+            self._safe_int(case["deposit"], 0),
+            "Lender recovered a deposit for a handoff the borrower did not accept.",
+            0,
+        )
+
+    @gl.public.write
+    def recover_undetermined(self, case_id: str):
+        """Resolve inconclusive reviews in favor of the borrower so no GEN is stranded."""
+        case = self._require_case(case_id)
+        self._require_party(case)
+        if case["status"] != "undetermined":
+            raise gl.vm.UserError("EXPECTED_NOT_UNDETERMINED")
+        self._settle(
+            case_id,
+            case,
+            "recovered_undetermined",
+            "undetermined",
+            self._safe_int(case["deposit"], 0),
+            0,
+            "Evidence was inconclusive; the deposit was returned to the borrower.",
+            self._bounded_confidence(case.get("confidence", 0)),
+        )
+
+    def _settle(
+        self,
+        case_id: str,
+        case: typing.Any,
+        status: str,
+        verdict_class: str,
+        borrower_amount: int,
+        lender_amount: int,
+        reasoning: str,
+        confidence: int,
+    ):
+        # Persist the final allocation before scheduling its transfers. Terminal
+        # status guards on callers make every allocation payable exactly once.
         case["status"] = status
         case["verdict_class"] = verdict_class
         case["release_to_borrower"] = str(borrower_amount)
         case["release_to_lender"] = str(lender_amount)
+        case["paid_to_borrower"] = str(borrower_amount)
+        case["paid_to_lender"] = str(lender_amount)
         case["confidence"] = confidence
-        case["reasoning"] = self._limit(verdict.get("reasoning", ""), 900)
+        case["reasoning"] = reasoning
         self.cases[case_id] = self._json(case)
+        self._pay(case["borrower"], borrower_amount)
+        self._pay(case["lender"], lender_amount)
+
+    def _pay(self, recipient: str, amount: int):
+        if amount <= 0:
+            return
+        # Native GEN leaves the ghost contract at finalization. Recipients are
+        # EOAs, so a transfer cannot be blocked by an arbitrary fallback method.
+        _NativeRecipient(Address(recipient)).emit_transfer(value=u256(amount))
 
     def _collect_case_evidence(self, case_id: str) -> typing.Any:
         out = []

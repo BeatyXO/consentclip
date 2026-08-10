@@ -5,7 +5,7 @@
 When you lend something valuable, the hardest question is: *who pays if it comes back damaged?* A normal smart contract can't look at photos or reason over condition descriptions. A centralized app could decide, but both parties must trust that operator. Custodi solves this with GenLayer — the deposit is locked on-chain and released based on consensus from independent AI validators comparing real pickup and return evidence.
 
 **Live app:** https://custodi-six.vercel.app
-**Contract:** [`0x5c7c148E4A6b9dac587F2912b97E378735E4525c`](https://explorer-studio.genlayer.com/address/0x5c7c148E4A6b9dac587F2912b97E378735E4525c) on StudioNet
+**Contract:** [`0xe08849Ba7521CB994B73042a3323387f51eB9f62`](https://explorer-studio.genlayer.com/address/0xe08849Ba7521CB994B73042a3323387f51eB9f62) on StudioNet
 
 ---
 
@@ -41,7 +41,7 @@ Physical item lending — camera gear, tools, instruments, vehicles — breaks d
 | `no_new_damage` | Full deposit returned to borrower |
 | `minor_wear` | 20% to lender, 80% to borrower |
 | `material_damage` | Full deposit to lender |
-| `undetermined` | Deposit held; no settlement (evidence was unreachable or ambiguous) |
+| `undetermined` | No immediate allocation; either party can call `recover_undetermined` to return the full deposit to the borrower |
 
 ### Why GenLayer is essential
 
@@ -76,6 +76,8 @@ submit_pickup_evidence(case_id, url, note)
 submit_return_evidence(case_id, url, note)
 release_without_dispute(case_id)
 request_damage_review(case_id)          ← GenLayer consensus step
+recover_unaccepted(case_id)              ← lender recovers a never-accepted handoff
+recover_undetermined(case_id)            ← either party returns an inconclusive deposit to borrower
 get_case(case_id)
 get_cases(limit)
 get_evidence(case_id)
@@ -119,7 +121,7 @@ npm run dev
 `.env.local`:
 
 ```
-NEXT_PUBLIC_CUSTODI_CONTRACT_ADDRESS=0x5c7c148E4A6b9dac587F2912b97E378735E4525c
+NEXT_PUBLIC_CUSTODI_CONTRACT_ADDRESS=0xe08849Ba7521CB994B73042a3323387f51eB9f62
 NEXT_PUBLIC_GENLAYER_CHAIN=studionet
 NEXT_PUBLIC_GENLAYER_EXPLORER_URL=https://explorer-studio.genlayer.com
 ```

@@ -7,7 +7,9 @@ export type CustodyStatus =
   | "released"
   | "partial_release"
   | "slashed"
-  | "undetermined";
+  | "undetermined"
+  | "recovered_unaccepted"
+  | "recovered_undetermined";
 
 export type EvidenceKind = "pickup_photo" | "return_photo" | "receipt" | "condition_note" | "repair_quote";
 
@@ -19,7 +21,7 @@ export type CustodyCase = {
   category: string;
   lender: string;
   borrower: string;
-  deposit: number;
+  deposit: bigint;
   status: CustodyStatus;
   startedAt: string;
   dueAt: string;
@@ -27,8 +29,8 @@ export type CustodyCase = {
   returnEvidence: number;
   verdict?: {
     class: DamageVerdict;
-    releaseToBorrower: number;
-    releaseToLender: number;
+    releaseToBorrower: bigint;
+    releaseToLender: bigint;
     confidence: number;
     reasoning: string;
   };

@@ -20,6 +20,8 @@ export const contractFunctions = [
   "submit_return_evidence",
   "request_damage_review",
   "release_without_dispute",
+  "recover_unaccepted",
+  "recover_undetermined",
   "get_case",
   "get_cases",
   "get_evidence",

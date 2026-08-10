@@ -37,6 +37,8 @@ const statuses: CustodyStatus[] = [
   "partial_release",
   "slashed",
   "undetermined",
+  "recovered_unaccepted",
+  "recovered_undetermined",
 ];
 
 const verdicts: DamageVerdict[] = ["no_new_damage", "minor_wear", "material_damage", "undetermined"];
@@ -59,7 +61,7 @@ export function toCustodyCase(item: ContractCase, evidence: EvidenceItem[] = [])
     category: item.category ?? "Uncategorized",
     lender: item.lender ?? "",
     borrower: item.borrower ?? "",
-    deposit: Number(item.deposit ?? 0),
+    deposit: BigInt(item.deposit ?? 0),
     status,
     startedAt: item.created_at ?? "",
     dueAt: item.due_at ?? "",
@@ -68,8 +70,8 @@ export function toCustodyCase(item: ContractCase, evidence: EvidenceItem[] = [])
     verdict: verdictClass
       ? {
           class: verdictClass,
-          releaseToBorrower: Number(item.release_to_borrower ?? 0),
-          releaseToLender: Number(item.release_to_lender ?? 0),
+          releaseToBorrower: BigInt(item.release_to_borrower ?? 0),
+          releaseToLender: BigInt(item.release_to_lender ?? 0),
           confidence: Number(item.confidence ?? 0),
           reasoning: item.reasoning ?? "",
         }

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TxStatus } from "@/components/tx-status";
 import { explorerUrl } from "@/lib/config";
 import { formatGenLayerError, writeCustodi } from "@/lib/genlayer";
+import { parseGenToWei } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet";
 
 type SubmitStatus = "idle" | "submitting" | "finalized" | "error";
@@ -38,11 +39,11 @@ export default function NewCasePage() {
     const borrower = String(form.get("borrower") ?? "").trim();
     const baseline = String(form.get("baseline") ?? "").trim();
     const dueAt = String(form.get("due") ?? "").trim();
-    const depositNumber = Number(String(form.get("deposit") ?? "").trim());
+    const depositWei = parseGenToWei(String(form.get("deposit") ?? ""));
 
-    if (!Number.isFinite(depositNumber) || depositNumber <= 0) {
+    if (depositWei === null) {
       setStatus("error");
-      setError("Deposit must be greater than 0 GEN.");
+      setError("Deposit must be a positive GEN amount with no more than 18 decimal places.");
       return;
     }
 
@@ -57,7 +58,7 @@ export default function NewCasePage() {
         identity,
         "create_handoff",
         [title, category, borrower, baseline, dueAt],
-        BigInt(Math.trunc(depositNumber)),
+        depositWei,
       );
       setTxHash(result.hash);
       setStatus("finalized");
@@ -95,7 +96,7 @@ export default function NewCasePage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="deposit">Deposit in GEN</Label>
-                  <Input id="deposit" name="deposit" type="number" min="1" step="1" placeholder="Deposit amount" required />
+                  <Input id="deposit" name="deposit" type="number" min="0.000000000000000001" step="any" placeholder="Deposit amount" required />
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
