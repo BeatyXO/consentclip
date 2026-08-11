@@ -11,6 +11,26 @@ export type WriteIdentity =
   | { mode: "browser"; privateKey: string }
   | { mode: "injected"; address: string };
 
+// StudioNet currently limits RPC traffic to roughly 30 requests/minute. Reads
+// are queued and briefly cached so navigation, refresh buttons, and multiple
+// mounted panels do not compete with a user's write transaction.
+const MIN_READ_GAP_MS = 2200;
+const READ_CACHE_MS = 6000;
+let readQueue = Promise.resolve();
+let lastReadAt = 0;
+const readCache = new Map<string, { expiresAt: number; value: unknown }>();
+
+function queueRead<T>(task: () => Promise<T>): Promise<T> {
+  const run = readQueue.then(async () => {
+    const wait = Math.max(0, MIN_READ_GAP_MS - (Date.now() - lastReadAt));
+    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+    lastReadAt = Date.now();
+    return task();
+  });
+  readQueue = run.then(() => undefined, () => undefined);
+  return run;
+}
+
 export function createReadClient() {
   return createClient({ chain, account: createAccount() });
 }
@@ -25,8 +45,15 @@ export async function createWriteClient(identity: WriteIdentity) {
 }
 
 export async function readCustodi(functionName: string, args: CalldataValue[] = []) {
-  const client = createReadClient();
-  return client.readContract({ address: contractAddress as HexAddress, functionName, args: args as never[] });
+  const key = `${functionName}:${JSON.stringify(args, (_, value) => typeof value === "bigint" ? value.toString() : value)}`;
+  const cached = readCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  return queueRead(async () => {
+    const client = createReadClient();
+    const value = await client.readContract({ address: contractAddress as HexAddress, functionName, args: args as never[] });
+    readCache.set(key, { expiresAt: Date.now() + READ_CACHE_MS, value });
+    return value;
+  });
 }
 
 function readRecord(value: unknown, key: string): unknown {
@@ -77,7 +104,9 @@ export async function writeCustodi(identity: WriteIdentity, functionName: string
   const receipt = await client.waitForTransactionReceipt({
     hash,
     status: TransactionStatus.FINALIZED,
-    interval: 5000,
+    // 8 seconds keeps one consensus transaction below the StudioNet limit
+    // while still showing progress promptly.
+    interval: 8000,
     retries: 90,
   });
 
@@ -87,6 +116,8 @@ export async function writeCustodi(identity: WriteIdentity, functionName: string
       `Contract execution failed for ${functionName}${reason ? `: ${reason}` : ""}. Transaction: ${hash}`,
     );
   }
+
+  readCache.clear();
 
   return { hash: hash as HexAddress, receipt };
 }

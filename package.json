@@ -1,5 +1,5 @@
 {
-  "name": "custodi",
+  "name": "consentclip",
   "version": "0.1.0",
   "private": true,
   "description": "Custodi — deposit-backed physical item handoff protocol on GenLayer",
@@ -12,6 +12,7 @@
     "verify:schema": "tsx scripts/verify-schema.ts"
   },
   "dependencies": {
+    "@swc/helpers": "^0.5.15",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "genlayer-js": "1.1.8",

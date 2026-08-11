@@ -252,9 +252,9 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             {showAccept ? (
               <Button
                 disabled={isBusy}
-                onClick={() => runWrite("accept_handoff", [String(item.id)])}
+                onClick={() => runWrite("accept_release", [String(item.id)])}
               >
-                Accept handoff
+                Accept release
               </Button>
             ) : null}
 
@@ -281,7 +281,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               <Button
                 variant="outline"
                 disabled={isBusy}
-                onClick={() => runWrite("request_damage_review", [String(item.id)])}
+                onClick={() => runWrite("request_consent_review", [String(item.id)])}
               >
                 <ShieldCheck className="h-4 w-4" /> Request review
               </Button>
@@ -292,9 +292,9 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               <Button
                 variant="danger"
                 disabled={isBusy}
-                onClick={() => runWrite("request_damage_review", [String(item.id)])}
+                onClick={() => runWrite("request_consent_review", [String(item.id)])}
               >
-                <FileWarning className="h-4 w-4" /> Dispute return
+                <FileWarning className="h-4 w-4" /> Challenge usage
               </Button>
             ) : null}
 

@@ -4,8 +4,8 @@ import { Navbar } from "@/components/navbar";
 import { WalletProvider } from "@/lib/wallet";
 
 export const metadata: Metadata = {
-  title: "Custodi",
-  description: "Deposit-backed item handoffs judged by GenLayer visual consensus.",
+  title: "ConsentClip",
+  description: "A GenLayer consent release gate for creator and media usage.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

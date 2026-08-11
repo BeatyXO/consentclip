@@ -6,7 +6,7 @@ import { WalletButton } from "@/components/wallet-button";
 
 const links = [
   { href: "/cases", label: "Cases", icon: Search },
-  { href: "/cases/new", label: "New handoff", icon: PackageCheck },
+  { href: "/cases/new", label: "New release", icon: PackageCheck },
   { href: "/evidence", label: "Evidence", icon: Camera },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
 ];
@@ -20,8 +20,8 @@ export function Navbar() {
             <Camera className="h-5 w-5 text-amberline" />
           </div>
           <div>
-            <p className="text-lg font-black tracking-tight">Custodi</p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-vault-300">handoff deposit protocol</p>
+            <p className="text-lg font-black tracking-tight">ConsentClip</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-vault-300">creator consent protocol</p>
           </div>
         </Link>
         <nav className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-center">

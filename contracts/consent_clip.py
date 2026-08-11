@@ -338,6 +338,25 @@ class ConsentClip(gl.Contract):
         # EOAs, so a transfer cannot be blocked by an arbitrary fallback method.
         _NativeRecipient(Address(recipient)).emit_transfer(value=u256(amount))
 
+    # ConsentClip's public vocabulary. The compact compatibility methods below
+    # keep the proven settlement implementation while the frontend uses release
+    # and usage language. They are intentionally thin deterministic wrappers.
+    @gl.public.write.payable
+    def create_release(self, title: str, media_type: str, publisher: str, consent_terms: str, expires_at: str) -> str:
+        return self.create_handoff(title, media_type, publisher, consent_terms, expires_at)
+
+    @gl.public.write
+    def accept_release(self, release_id: str):
+        return self.accept_handoff(release_id)
+
+    @gl.public.write
+    def submit_usage(self, release_id: str, url: str, note: str):
+        return self.submit_return_evidence(release_id, url, note)
+
+    @gl.public.write
+    def request_consent_review(self, release_id: str):
+        return self.request_damage_review(release_id)
+
     def _collect_case_evidence(self, case_id: str) -> typing.Any:
         out = []
         raw_index = self.case_evidence_index.get(case_id, "")

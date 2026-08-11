@@ -138,7 +138,7 @@ export default function EvidencePage() {
 
     try {
       setStatus("submitting");
-      const functionName = kind === "return_photo" ? "submit_return_evidence" : "submit_pickup_evidence";
+      const functionName = kind === "return_photo" ? "submit_usage" : "submit_pickup_evidence";
       const result = await writeCustodi(identity, functionName, [caseId, url, note]);
       setTxHash(result.hash);
       setStatus("finalized");

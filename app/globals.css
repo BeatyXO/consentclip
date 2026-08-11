@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-vault-950: #171c18;
-  --color-vault-900: #20271f;
-  --color-vault-800: #2d382d;
-  --color-vault-700: #43543f;
-  --color-vault-500: #7f9a6d;
-  --color-vault-300: #cad8b8;
-  --color-vault-200: #e4ebd7;
-  --color-vault-100: #f6f7ef;
-  --color-amberline: #d8a846;
-  --color-rustline: #bc674f;
-  --color-skyline: #80a9bb;
+  --color-vault-950: #0d0714;
+  --color-vault-900: #160b22;
+  --color-vault-800: #251037;
+  --color-vault-700: #460071;
+  --color-vault-500: #03ccff;
+  --color-vault-300: #09fbff;
+  --color-vault-200: #d7ecff;
+  --color-vault-100: #faf7ff;
+  --color-amberline: #d403e1;
+  --color-rustline: #ff5bba;
+  --color-skyline: #03ccff;
 }
 
 :root {
@@ -25,7 +25,7 @@
 body {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse 70% 35% at 50% -12%, rgba(216, 168, 70, 0.22), transparent),
+    radial-gradient(ellipse 70% 35% at 50% -12%, rgba(212, 3, 225, 0.28), transparent),
     linear-gradient(rgba(202, 216, 184, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(202, 216, 184, 0.035) 1px, transparent 1px),
     var(--color-vault-950);

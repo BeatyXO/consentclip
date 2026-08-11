@@ -56,7 +56,7 @@ export default function NewCasePage() {
       setStatus("submitting");
       const result = await writeCustodi(
         identity,
-        "create_handoff",
+        "create_release",
         [title, category, borrower, baseline, dueAt],
         depositWei,
       );
@@ -72,10 +72,10 @@ export default function NewCasePage() {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <section className="space-y-6">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.24em] text-amberline">New handoff</p>
-          <h1 className="mt-2 text-4xl font-black">Create a custody case</h1>
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-amberline">New release</p>
+          <h1 className="mt-2 text-4xl font-black">Create a consent release</h1>
           <p className="mt-3 max-w-2xl text-vault-200">
-            The lender defines the item and deposit. The borrower accepts with the same identity the app displays.
+            The creator defines the work and permitted use. The publisher accepts with the same identity the app displays.
           </p>
         </div>
 
@@ -86,31 +86,31 @@ export default function NewCasePage() {
           <CardContent>
             <form className="grid gap-5" onSubmit={onSubmit}>
               <div className="grid gap-2">
-                <Label htmlFor="title">Item title</Label>
+                <Label htmlFor="title">Media title</Label>
                 <Input id="title" name="title" placeholder="Item name and handoff purpose" required />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">Media type</Label>
                   <Input id="category" name="category" placeholder="Item category" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="deposit">Deposit in GEN</Label>
+                  <Label htmlFor="deposit">Review bond in GEN</Label>
                   <Input id="deposit" name="deposit" type="number" min="0.000000000000000001" step="any" placeholder="Deposit amount" required />
                 </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="borrower">Borrower address</Label>
+                  <Label htmlFor="borrower">Publisher address</Label>
                   <Input id="borrower" name="borrower" placeholder="0x…" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="due">Return deadline</Label>
+                  <Label htmlFor="due">Consent expiry</Label>
                   <Input id="due" name="due" type="datetime-local" required />
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="baseline">Baseline condition</Label>
+                <Label htmlFor="baseline">Granted consent terms</Label>
                 <Textarea
                   id="baseline"
                   name="baseline"
@@ -122,7 +122,7 @@ export default function NewCasePage() {
                 <Label htmlFor="photo">Pickup evidence URL</Label>
                 <Input id="photo" name="photo" type="url" placeholder="https://…" />
                 <p className="text-xs text-vault-950/60">
-                  This transaction creates the custody case. Add pickup and return evidence from the Evidence page.
+                  This transaction creates the on-chain release. Add the published usage URL from the Evidence page.
                 </p>
               </div>
               <Button type="submit" size="lg" disabled={!wallet.address || status === "submitting"}>
@@ -132,7 +132,7 @@ export default function NewCasePage() {
               {error ? <p className="rounded-md border border-rustline/40 bg-rustline/10 p-3 text-sm text-rustline">{error}</p> : null}
               {txHash ? (
                 <div className="rounded-md border border-vault-700/20 bg-vault-100/60 p-3 text-sm text-vault-950/75">
-                  <p className="font-semibold text-vault-950">Handoff creation transaction finalized.</p>
+                  <p className="font-semibold text-vault-950">Consent release transaction finalized.</p>
                   <Link className="mt-1 block break-all font-mono text-xs underline" href={`${explorerUrl}/transactions/${txHash}`} target="_blank">
                     {txHash}
                   </Link>

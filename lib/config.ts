@@ -10,10 +10,14 @@ const CHAINS = {
 } as const;
 
 export const chain = CHAINS[chainName as keyof typeof CHAINS] ?? studionet;
-export const contractAddress = process.env.NEXT_PUBLIC_CUSTODI_CONTRACT_ADDRESS ?? "";
+export const contractAddress = process.env.NEXT_PUBLIC_CONSENTCLIP_CONTRACT_ADDRESS ?? "";
 export const explorerUrl = process.env.NEXT_PUBLIC_GENLAYER_EXPLORER_URL ?? "https://explorer-studio.genlayer.com";
 
 export const contractFunctions = [
+  "create_release",
+  "accept_release",
+  "submit_usage",
+  "request_consent_review",
   "create_handoff",
   "accept_handoff",
   "submit_pickup_evidence",
