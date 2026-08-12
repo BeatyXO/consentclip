@@ -14,14 +14,17 @@ export type WriteIdentity =
 // StudioNet currently limits RPC traffic to roughly 30 requests/minute. Reads
 // are queued and briefly cached so navigation, refresh buttons, and multiple
 // mounted panels do not compete with a user's write transaction.
-const MIN_READ_GAP_MS = 2200;
-const READ_CACHE_MS = 6000;
+const MIN_READ_GAP_MS = 4000;
+const READ_CACHE_MS = 20_000;
 let readQueue = Promise.resolve();
 let lastReadAt = 0;
 const readCache = new Map<string, { expiresAt: number; value: unknown }>();
+const inFlightReads = new Map<string, Promise<unknown>>();
+let activeWrites = 0;
 
 function queueRead<T>(task: () => Promise<T>): Promise<T> {
   const run = readQueue.then(async () => {
+    while (activeWrites > 0) await new Promise((resolve) => setTimeout(resolve, 1000));
     const wait = Math.max(0, MIN_READ_GAP_MS - (Date.now() - lastReadAt));
     if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
     lastReadAt = Date.now();
@@ -48,12 +51,20 @@ export async function readCustodi(functionName: string, args: CalldataValue[] = 
   const key = `${functionName}:${JSON.stringify(args, (_, value) => typeof value === "bigint" ? value.toString() : value)}`;
   const cached = readCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
-  return queueRead(async () => {
+  const existing = inFlightReads.get(key);
+  if (existing) return existing;
+  const request = queueRead(async () => {
     const client = createReadClient();
     const value = await client.readContract({ address: contractAddress as HexAddress, functionName, args: args as never[] });
     readCache.set(key, { expiresAt: Date.now() + READ_CACHE_MS, value });
     return value;
   });
+  inFlightReads.set(key, request);
+  try {
+    return await request;
+  } finally {
+    inFlightReads.delete(key);
+  }
 }
 
 function readRecord(value: unknown, key: string): unknown {
@@ -99,14 +110,15 @@ export function formatGenLayerError(caught: unknown, fallback = "GenLayer transa
 }
 
 export async function writeCustodi(identity: WriteIdentity, functionName: string, args: CalldataValue[] = [], value = 0n) {
+  activeWrites += 1;
+  try {
   const client = await createWriteClient(identity);
   const hash = await client.writeContract({ address: contractAddress as HexAddress, functionName, args: args as never[], value });
   const receipt = await client.waitForTransactionReceipt({
     hash,
     status: TransactionStatus.FINALIZED,
-    // 8 seconds keeps one consensus transaction below the StudioNet limit
-    // while still showing progress promptly.
-    interval: 8000,
+    // One write polls at five requests/minute; reads wait while it is pending.
+    interval: 12_000,
     retries: 90,
   });
 
@@ -120,4 +132,7 @@ export async function writeCustodi(identity: WriteIdentity, functionName: string
   readCache.clear();
 
   return { hash: hash as HexAddress, receipt };
+  } finally {
+    activeWrites -= 1;
+  }
 }

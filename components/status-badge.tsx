@@ -3,10 +3,9 @@ import type { CustodyStatus } from "@/lib/types";
 
 const copy: Record<CustodyStatus, string> = {
   draft: "Draft",
-  awaiting_borrower: "Awaiting borrower",
-  active: "Active custody",
-  return_submitted: "Return submitted",
-  under_review: "Consensus review",
+  awaiting_publisher: "Awaiting publisher",
+  active: "Release active",
+  usage_submitted: "Usage submitted",
   released: "Deposit released",
   partial_release: "Partial release",
   slashed: "Deposit slashed",
@@ -17,10 +16,9 @@ const copy: Record<CustodyStatus, string> = {
 
 const tone: Record<CustodyStatus, string> = {
   draft: "border-vault-700/40 bg-vault-200",
-  awaiting_borrower: "border-skyline/70 bg-skyline/20",
+  awaiting_publisher: "border-skyline/70 bg-skyline/20",
   active: "border-amberline/80 bg-amberline/25",
-  return_submitted: "border-skyline/70 bg-skyline/20",
-  under_review: "border-amberline/80 bg-amberline/25",
+  usage_submitted: "border-skyline/70 bg-skyline/20",
   released: "border-vault-500/80 bg-vault-500/25",
   partial_release: "border-amberline/80 bg-amberline/25",
   slashed: "border-rustline/80 bg-rustline/25",

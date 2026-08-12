@@ -23,7 +23,7 @@ import type { CustodyCase, EvidenceItem } from "@/lib/types";
 import { shortAddress } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet";
 
-type EvidenceWriteKind = "pickup_photo" | "return_photo";
+type EvidenceWriteKind = "terms" | "usage";
 type SubmitStatus = "idle" | "submitting" | "finalized" | "error";
 
 const selectClass =
@@ -80,7 +80,7 @@ export default function EvidencePage() {
     try {
       setLoadingCases(true);
       setError(undefined);
-      const result = await readCustodi("get_cases", [100]);
+      const result = await readCustodi("get_releases", [100]);
       const walletCases = parseContractList<ContractCase>(result)
         .map((item) => toCustodyCase(item))
         .filter((item) => item.id > 0 && isWalletCase(item, wallet.address));
@@ -115,7 +115,7 @@ export default function EvidencePage() {
 
     const form = new FormData(event.currentTarget);
     const caseId = String(form.get("caseId") ?? "").trim();
-    const kind = String(form.get("kind") ?? "pickup_photo") as EvidenceWriteKind;
+    const kind = String(form.get("kind") ?? "terms") as EvidenceWriteKind;
     const url = String(form.get("url") ?? "").trim();
     const note = String(form.get("note") ?? "").trim();
 
@@ -138,7 +138,7 @@ export default function EvidencePage() {
 
     try {
       setStatus("submitting");
-      const functionName = kind === "return_photo" ? "submit_usage" : "submit_pickup_evidence";
+      const functionName = kind === "usage" ? "submit_usage_evidence" : "submit_terms_evidence";
       const result = await writeCustodi(identity, functionName, [caseId, url, note]);
       setTxHash(result.hash);
       setStatus("finalized");
@@ -188,8 +188,8 @@ export default function EvidencePage() {
             <div className="grid gap-2">
               <Label htmlFor="kind">Evidence kind</Label>
               <select className={selectClass} id="kind" name="kind" required>
-                <option value="pickup_photo">Pickup photo / baseline proof</option>
-                <option value="return_photo">Return photo / handback proof</option>
+                <option value="terms">Consent terms / approved brief</option>
+                <option value="usage">Live usage evidence</option>
               </select>
               <p className="text-xs text-vault-950/60">
                 Repair quotes can be attached as a public URL in the note, but the contract settlement flow compares pickup and return evidence.
@@ -250,7 +250,7 @@ export default function EvidencePage() {
                   <article key={item.id} className="rounded-md border border-vault-700/20 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <p className="inline-flex items-center gap-2 font-semibold">
-                        {item.kind === "pickup_photo" ? <Camera className="h-4 w-4" /> : <FileImage className="h-4 w-4" />}
+                        {item.kind === "terms" ? <Camera className="h-4 w-4" /> : <FileImage className="h-4 w-4" />}
                         {item.kind.replace("_", " ")} #{item.id}
                       </p>
                       <span className="font-mono text-xs text-vault-950/60">{shortAddress(item.submittedBy)}</span>

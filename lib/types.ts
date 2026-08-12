@@ -1,47 +1,17 @@
-export type CustodyStatus =
-  | "draft"
-  | "awaiting_borrower"
-  | "active"
-  | "return_submitted"
-  | "under_review"
-  | "released"
-  | "partial_release"
-  | "slashed"
-  | "undetermined"
-  | "recovered_unaccepted"
-  | "recovered_undetermined";
-
-export type EvidenceKind = "pickup_photo" | "return_photo" | "receipt" | "condition_note" | "repair_quote";
-
-export type DamageVerdict = "no_new_damage" | "minor_wear" | "material_damage" | "undetermined";
-
-export type CustodyCase = {
-  id: number;
-  title: string;
-  category: string;
-  lender: string;
-  borrower: string;
-  deposit: bigint;
-  status: CustodyStatus;
-  startedAt: string;
-  dueAt: string;
-  pickupEvidence: number;
-  returnEvidence: number;
-  verdict?: {
-    class: DamageVerdict;
-    releaseToBorrower: bigint;
-    releaseToLender: bigint;
-    confidence: number;
-    reasoning: string;
-  };
+export type ReleaseStatus = "draft" | "awaiting_publisher" | "active" | "usage_submitted" | "released" | "partial_release" | "slashed" | "undetermined" | "recovered_unaccepted" | "recovered_undetermined";
+export type EvidenceKind = "terms" | "usage";
+export type ConsentVerdict = "within_scope" | "minor_overreach" | "material_breach" | "undetermined";
+export type ConsentRelease = {
+  id: number; title: string; mediaType: string; creator: string; publisher: string; deposit: bigint;
+  status: ReleaseStatus; startedAt: string; expiresAt: string; termsEvidence: number; usageEvidence: number;
+  verdict?: { class: ConsentVerdict; releaseToPublisher: bigint; releaseToCreator: bigint; confidence: number; reasoning: string };
 };
-
-export type EvidenceItem = {
-  id: number;
-  caseId: number;
-  kind: EvidenceKind;
-  url: string;
-  note: string;
-  submittedBy: string;
-  submittedAt: string;
+export type EvidenceItem = { id: number; releaseId: number; kind: EvidenceKind; url: string; note: string; submittedBy: string; submittedAt: string };
+// Temporary view-model aliases keep the route component surface compact while it renders releases.
+export type CustodyStatus = ReleaseStatus;
+export type DamageVerdict = ConsentVerdict;
+export type CustodyCase = {
+  id: number; title: string; category: string; lender: string; borrower: string; deposit: bigint;
+  status: ReleaseStatus; startedAt: string; dueAt: string; pickupEvidence: number; returnEvidence: number;
+  verdict?: { class: ConsentVerdict; releaseToBorrower: bigint; releaseToLender: bigint; confidence: number; reasoning: string };
 };

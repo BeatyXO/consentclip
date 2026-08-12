@@ -33,8 +33,8 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
     setLoading(true);
     try {
       const [caseRaw, evidenceRaw] = await Promise.all([
-        readCustodi("get_case", [String(id)]),
-        readCustodi("get_evidence", [id]).catch(() => []),
+        readCustodi("get_release", [String(id)]),
+        readCustodi("get_evidence", [String(id)]).catch(() => []),
       ]);
 
       const parsed =
@@ -80,11 +80,11 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
   const isBorrower = item ? item.borrower.toLowerCase() === normalizedAddress : false;
 
   // ── action visibility rules ─────────────────────────────────────────────────
-  const showAccept = item?.status === "awaiting_borrower" && isBorrower;
-  const showRelease = item?.status === "return_submitted" && isLender;
-  const showReview = item?.status === "return_submitted" && (isLender || isBorrower);
-  const showDispute = item?.status === "return_submitted" && (isLender || isBorrower);
-  const showUnacceptedRecovery = item?.status === "awaiting_borrower" && isLender;
+  const showAccept = item?.status === "awaiting_publisher" && isBorrower;
+  const showRelease = item?.status === "usage_submitted" && isLender;
+  const showReview = item?.status === "usage_submitted" && (isLender || isBorrower);
+  const showDispute = item?.status === "usage_submitted" && (isLender || isBorrower);
+  const showUnacceptedRecovery = item?.status === "awaiting_publisher" && isLender;
   const showUndeterminedRecovery = item?.status === "undetermined" && (isLender || isBorrower);
 
   // ── render ──────────────────────────────────────────────────────────────────
@@ -270,7 +270,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
               <Button
                 variant="outline"
                 disabled={isBusy}
-                onClick={() => runWrite("release_without_dispute", [String(item.id)])}
+                onClick={() => runWrite("release_deposit", [String(item.id)])}
               >
                 <ShieldCheck className="h-4 w-4" /> Release deposit
               </Button>

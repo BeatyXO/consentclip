@@ -1,100 +1,19 @@
-import type { CustodyCase, CustodyStatus, DamageVerdict, EvidenceItem, EvidenceKind } from "@/lib/types";
-
-export type ContractCase = {
-  id?: string;
-  title?: string;
-  category?: string;
-  lender?: string;
-  borrower?: string;
-  deposit?: string;
-  status?: string;
-  due_at?: string;
-  created_at?: string;
-  verdict_class?: string;
-  release_to_borrower?: string;
-  release_to_lender?: string;
-  confidence?: number;
-  reasoning?: string;
-};
-
-export type ContractEvidence = {
-  id?: string;
-  case_id?: string;
-  kind?: string;
-  url?: string;
-  note?: string;
-  submitted_by?: string;
-  submitted_at?: string;
-};
-
-const statuses: CustodyStatus[] = [
-  "draft",
-  "awaiting_borrower",
-  "active",
-  "return_submitted",
-  "under_review",
-  "released",
-  "partial_release",
-  "slashed",
-  "undetermined",
-  "recovered_unaccepted",
-  "recovered_undetermined",
-];
-
-const verdicts: DamageVerdict[] = ["no_new_damage", "minor_wear", "material_damage", "undetermined"];
-const evidenceKinds: EvidenceKind[] = ["pickup_photo", "return_photo", "receipt", "condition_note", "repair_quote"];
-
-export function parseContractList<T>(value: unknown): T[] {
-  if (Array.isArray(value)) return value as T[];
-  if (typeof value !== "string" || value.trim() === "") return [];
-  const parsed = JSON.parse(value) as unknown;
-  return Array.isArray(parsed) ? (parsed as T[]) : [];
+import type { ConsentRelease, ConsentVerdict, EvidenceItem, EvidenceKind, ReleaseStatus } from "@/lib/types";
+import type { CustodyCase } from "@/lib/types";
+export type ContractRelease = { id?: string; title?: string; media_type?: string; creator?: string; publisher?: string; deposit?: string; status?: string; expires_at?: string; created_at?: string; verdict_class?: string; release_to_publisher?: string; release_to_creator?: string; confidence?: number; reasoning?: string };
+export type ContractEvidence = { id?: string; release_id?: string; kind?: string; url?: string; note?: string; submitted_by?: string; submitted_at?: string };
+const statuses: ReleaseStatus[] = ["draft", "awaiting_publisher", "active", "usage_submitted", "released", "partial_release", "slashed", "undetermined", "recovered_unaccepted", "recovered_undetermined"];
+const verdicts: ConsentVerdict[] = ["within_scope", "minor_overreach", "material_breach", "undetermined"];
+const evidenceKinds: EvidenceKind[] = ["terms", "usage"];
+export function parseContractList<T>(value: unknown): T[] { if (Array.isArray(value)) return value as T[]; if (typeof value !== "string" || !value.trim()) return []; const result = JSON.parse(value) as unknown; return Array.isArray(result) ? result as T[] : []; }
+export function toConsentRelease(item: ContractRelease, evidence: EvidenceItem[] = []): ConsentRelease {
+  const status = statuses.includes(item.status as ReleaseStatus) ? item.status as ReleaseStatus : "draft";
+  const verdict = verdicts.includes(item.verdict_class as ConsentVerdict) ? item.verdict_class as ConsentVerdict : undefined;
+  return { id: Number(item.id ?? 0), title: item.title ?? "Untitled release", mediaType: item.media_type ?? "Uncategorized", creator: item.creator ?? "", publisher: item.publisher ?? "", deposit: BigInt(item.deposit ?? 0), status, startedAt: item.created_at ?? "", expiresAt: item.expires_at ?? "", termsEvidence: evidence.filter(x => x.kind === "terms").length, usageEvidence: evidence.filter(x => x.kind === "usage").length, verdict: verdict ? { class: verdict, releaseToPublisher: BigInt(item.release_to_publisher ?? 0), releaseToCreator: BigInt(item.release_to_creator ?? 0), confidence: Number(item.confidence ?? 0), reasoning: item.reasoning ?? "" } : undefined };
 }
-
-export function toCustodyCase(item: ContractCase, evidence: EvidenceItem[] = []): CustodyCase {
-  const status = statuses.includes(item.status as CustodyStatus) ? (item.status as CustodyStatus) : "draft";
-  const verdictClass = verdicts.includes(item.verdict_class as DamageVerdict) ? (item.verdict_class as DamageVerdict) : undefined;
-
-  return {
-    id: Number(item.id ?? 0),
-    title: item.title ?? "Untitled handoff",
-    category: item.category ?? "Uncategorized",
-    lender: item.lender ?? "",
-    borrower: item.borrower ?? "",
-    deposit: BigInt(item.deposit ?? 0),
-    status,
-    startedAt: item.created_at ?? "",
-    dueAt: item.due_at ?? "",
-    pickupEvidence: evidence.filter((record) => record.kind === "pickup_photo").length,
-    returnEvidence: evidence.filter((record) => record.kind === "return_photo").length,
-    verdict: verdictClass
-      ? {
-          class: verdictClass,
-          releaseToBorrower: BigInt(item.release_to_borrower ?? 0),
-          releaseToLender: BigInt(item.release_to_lender ?? 0),
-          confidence: Number(item.confidence ?? 0),
-          reasoning: item.reasoning ?? "",
-        }
-      : undefined,
-  };
-}
-
-export function toEvidenceItem(item: ContractEvidence): EvidenceItem {
-  const kind = evidenceKinds.includes(item.kind as EvidenceKind) ? (item.kind as EvidenceKind) : "condition_note";
-
-  return {
-    id: Number(item.id ?? 0),
-    caseId: Number(item.case_id ?? 0),
-    kind,
-    url: item.url ?? "",
-    note: item.note ?? "",
-    submittedBy: item.submitted_by ?? "",
-    submittedAt: item.submitted_at ?? "",
-  };
-}
-
-export function isWalletCase(item: CustodyCase, address?: string) {
-  if (!address) return false;
-  const normalized = address.toLowerCase();
-  return item.lender.toLowerCase() === normalized || item.borrower.toLowerCase() === normalized;
-}
+export function toEvidenceItem(item: ContractEvidence): EvidenceItem { const kind = evidenceKinds.includes(item.kind as EvidenceKind) ? item.kind as EvidenceKind : "terms"; return { id: Number(item.id ?? 0), releaseId: Number(item.release_id ?? 0), kind, url: item.url ?? "", note: item.note ?? "", submittedBy: item.submitted_by ?? "", submittedAt: item.submitted_at ?? "" }; }
+export function isWalletRelease(item: ConsentRelease, address?: string) { const value = address?.toLowerCase(); return !!value && (item.creator.toLowerCase() === value || item.publisher.toLowerCase() === value); }
+// Route migration aliases. The data always comes from the native ConsentClip ABI above.
+export type ContractCase = ContractRelease;
+export function toCustodyCase(item: ContractRelease, evidence: EvidenceItem[] = []): CustodyCase { const release = toConsentRelease(item, evidence); return { id: release.id, title: release.title, category: release.mediaType, lender: release.creator, borrower: release.publisher, deposit: release.deposit, status: release.status, startedAt: release.startedAt, dueAt: release.expiresAt, pickupEvidence: release.termsEvidence, returnEvidence: release.usageEvidence, verdict: release.verdict ? { class: release.verdict.class, releaseToBorrower: release.verdict.releaseToPublisher, releaseToLender: release.verdict.releaseToCreator, confidence: release.verdict.confidence, reasoning: release.verdict.reasoning } : undefined }; }
+export function isWalletCase(item: CustodyCase, address?: string) { const value = address?.toLowerCase(); return !!value && (item.lender.toLowerCase() === value || item.borrower.toLowerCase() === value); }

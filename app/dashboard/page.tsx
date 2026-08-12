@@ -16,7 +16,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div>
         <p className="font-mono text-xs uppercase tracking-[0.24em] text-amberline">Protocol desk</p>
-        <h1 className="mt-2 text-4xl font-black">Custodi dashboard</h1>
+        <h1 className="mt-2 text-4xl font-black">ConsentClip dashboard</h1>
       </div>
       <section className="grid gap-4 md:grid-cols-4">
         {stats.map(([label, value, Icon]) => (
@@ -32,7 +32,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm leading-6 text-vault-950/75">
-            Local seed metrics have been removed. Wire this dashboard to `get_cases`, `get_case`, and `get_evidence`
+            Local seed metrics have been removed. Wire this dashboard to `get_releases`, `get_release`, and `get_evidence`
             on the deployed contract to show live counts.
           </p>
           <p className="mt-3 break-all font-mono text-xs text-vault-950/70">{contractAddress || "No contract configured"}</p>

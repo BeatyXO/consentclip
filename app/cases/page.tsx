@@ -20,17 +20,17 @@ export default function CasesPage() {
     if (!contractAddress) {
       setCases([]);
       setLoading(false);
-      setError("No Custodi contract address is configured.");
+      setError("No ConsentClip contract address is configured.");
       return;
     }
 
     try {
       setLoading(true);
       setError(undefined);
-      const result = await readCustodi("get_cases", [100]);
+      const result = await readCustodi("get_releases", [100]);
       setCases(parseContractList<ContractCase>(result).map((item) => toCustodyCase(item)).filter((item) => item.id > 0));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not read Custodi cases from GenLayer.");
+      setError(caught instanceof Error ? caught.message : "Could not read ConsentClip releases from GenLayer.");
     } finally {
       setLoading(false);
     }
@@ -45,9 +45,9 @@ export default function CasesPage() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.24em] text-amberline">Case explorer</p>
-          <h1 className="mt-2 text-4xl font-black">Custody cases</h1>
+          <h1 className="mt-2 text-4xl font-black">Consent releases</h1>
           <p className="mt-3 max-w-2xl text-vault-200">
-            Read-only browsing works without a wallet. Cases below are loaded from the deployed Custodi contract.
+            Read-only browsing works without a wallet. Releases below are loaded from the deployed ConsentClip contract.
           </p>
         </div>
         <Button type="button" variant="outline" onClick={loadCases} disabled={loading}>
@@ -75,7 +75,7 @@ export default function CasesPage() {
             <CardTitle>Loading on-chain cases</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm leading-6 text-vault-950/75">Reading `get_cases(100)` from the deployed Custodi contract.</p>
+            <p className="text-sm leading-6 text-vault-950/75">Reading `get_releases(100)` from the deployed ConsentClip contract.</p>
           </CardContent>
         </Card>
       ) : null}
@@ -84,15 +84,15 @@ export default function CasesPage() {
         <Card>
           <CardHeader>
             <PackageOpen className="h-8 w-8 text-vault-700" />
-            <CardTitle>No cases found on-chain</CardTitle>
+            <CardTitle>No releases found on-chain</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm leading-6 text-vault-950/75">
-              This page read the deployed Custodi contract, but it returned an empty case list:
+              This page read the deployed ConsentClip contract, but it returned an empty release list:
               <span className="mt-2 block break-all font-mono text-xs">{contractAddress || "No contract configured"}</span>
             </p>
             <Link href="/cases/new">
-              <Button>Create the first handoff</Button>
+              <Button>Create the first release</Button>
             </Link>
           </CardContent>
         </Card>
