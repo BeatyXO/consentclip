@@ -14,7 +14,7 @@ const links = [
 export function Navbar() {
   return (
     <header className="relative z-[100] border-b border-vault-300/10 bg-vault-950/85 backdrop-blur">
-      <div className="mx-auto grid max-w-7xl gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-md border border-amberline/70 bg-amberline/15">
             <Camera className="h-5 w-5 text-amberline" />
@@ -24,7 +24,10 @@ export function Navbar() {
             <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-vault-300">creator consent protocol</p>
           </div>
         </Link>
-        <nav className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-center">
+        <div className="absolute right-4 top-4 sm:right-6 lg:right-8">
+          <WalletButton />
+        </div>
+        <nav className="mt-5 flex flex-wrap items-center gap-2 pr-0 sm:pr-48">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -36,9 +39,6 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <div className="flex justify-start lg:justify-end">
-          <WalletButton />
-        </div>
       </div>
     </header>
   );
