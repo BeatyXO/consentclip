@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { TxStatus } from "@/components/tx-status";
 import { readCustodi, writeCustodi, formatGenLayerError, type WriteIdentity } from "@/lib/genlayer";
 import { useWallet } from "@/lib/wallet";
-import { formatGen, shortAddress } from "@/lib/utils";
+import { formatGen, parseGenToWei, shortAddress } from "@/lib/utils";
 import { parseContractList, toCustodyCase, toEvidenceItem, type ContractCase, type ContractEvidence } from "@/lib/custodi-contract";
 import type { CustodyCase, EvidenceItem } from "@/lib/types";
 
@@ -252,7 +252,12 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             {showAccept ? (
               <Button
                 disabled={isBusy}
-                onClick={() => runWrite("accept_release", [String(item.id)])}
+                onClick={() => {
+                  const amount = window.prompt("Collateral to lock in GEN (returned or settled by the release outcome):");
+                  const value = parseGenToWei(amount ?? "");
+                  if (value === null) { setActionError("Enter a positive GEN collateral amount."); return; }
+                  void runWrite("accept_release", [String(item.id)], value);
+                }}
               >
                 Accept release
               </Button>

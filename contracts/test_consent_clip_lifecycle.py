@@ -52,14 +52,16 @@ class ConsentClipLifecycleTests(unittest.TestCase):
 
     def create(self, deposit=100):
         self.sender(self.creator)
-        self.gl.message.value = deposit
-        return self.contract.create_release("Creator testimonial", "video", self.publisher,
+        self.gl.message.value = 0
+        release_id = self.contract.create_release("Creator testimonial", "video", self.publisher, "https://example.com/source",
             "Publisher may use this testimonial only in the specified campaign.", "2026-12-31")
+        self.sender(self.publisher)
+        self.gl.message.value = deposit
+        self.contract.accept_release(release_id)
+        return release_id
 
     def ready_for_review(self):
         release_id = self.create()
-        self.sender(self.publisher)
-        self.contract.accept_release(release_id)
         self.sender(self.creator)
         self.contract.submit_terms_evidence(release_id, "https://example.com/terms", "Approved campaign terms")
         self.sender(self.publisher)
@@ -97,10 +99,20 @@ class ConsentClipLifecycleTests(unittest.TestCase):
                 self.assertEqual(TRANSFERS, transfers)
 
     def test_creator_can_recover_an_unaccepted_release(self):
-        release_id = self.create()
+        self.sender(self.creator)
+        self.gl.message.value = 0
+        release_id = self.contract.create_release("Creator testimonial", "video", self.publisher, "https://example.com/source",
+            "Publisher may use this testimonial only in the specified campaign.", "2026-12-31")
         self.contract.recover_unaccepted(release_id)
-        self.assertEqual(TRANSFERS, [(self.creator, 100)])
+        self.assertEqual(TRANSFERS, [])
         self.assertEqual(self.release(release_id)["status"], "recovered_unaccepted")
+
+    def test_counter_evidence_is_immutable_and_included(self):
+        release_id = self.ready_for_review()
+        self.sender(self.creator)
+        self.contract.submit_counter_evidence(release_id, "https://example.com/counter", "Creator supplied counter-evidence")
+        kinds = [record["kind"] for record in json.loads(self.contract.get_evidence(release_id))]
+        self.assertEqual(kinds, ["terms", "usage", "counter"])
 
     def test_either_party_can_recover_an_undetermined_release(self):
         release_id = self.ready_for_review()

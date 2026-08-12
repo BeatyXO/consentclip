@@ -23,7 +23,7 @@ import type { CustodyCase, EvidenceItem } from "@/lib/types";
 import { shortAddress } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet";
 
-type EvidenceWriteKind = "terms" | "usage";
+type EvidenceWriteKind = "terms" | "usage" | "counter";
 type SubmitStatus = "idle" | "submitting" | "finalized" | "error";
 
 const selectClass =
@@ -138,7 +138,7 @@ export default function EvidencePage() {
 
     try {
       setStatus("submitting");
-      const functionName = kind === "usage" ? "submit_usage_evidence" : "submit_terms_evidence";
+      const functionName = kind === "usage" ? "submit_usage_evidence" : kind === "counter" ? "submit_counter_evidence" : "submit_terms_evidence";
       const result = await writeCustodi(identity, functionName, [caseId, url, note]);
       setTxHash(result.hash);
       setStatus("finalized");
@@ -190,6 +190,7 @@ export default function EvidencePage() {
               <select className={selectClass} id="kind" name="kind" required>
                 <option value="terms">Consent terms / approved brief</option>
                 <option value="usage">Live usage evidence</option>
+                <option value="counter">Counter-evidence</option>
               </select>
               <p className="text-xs text-vault-950/60">
                 Repair quotes can be attached as a public URL in the note, but the contract settlement flow compares pickup and return evidence.

@@ -18,6 +18,7 @@ export const contractFunctions = [
   "accept_release",
   "submit_terms_evidence",
   "submit_usage_evidence",
+  "submit_counter_evidence",
   "request_consent_review",
   "release_deposit",
   "recover_unaccepted",

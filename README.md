@@ -12,16 +12,16 @@ Everything else—roles, deposits, evidence indexing, settlement arithmetic, and
 
 ## Live StudioNet contract
 
-- Contract: [`0x9cF0a1640C85C0B68004cC20cEa8a283cFa69101`](https://explorer-studio.genlayer.com/address/0x9cF0a1640C85C0B68004cC20cEa8a283cFa69101)
-- Deployment tx: `0x58e5de6c04e75551c0a268f0d9881e75b4e796a23956c1b30add6a7346ed10e3`
+- Contract: [`0x41522ecF0A0F4513c1354cB1e5fFBD0981b5290B`](https://explorer-studio.genlayer.com/address/0x41522ecF0A0F4513c1354cB1e5fFBD0981b5290B)
+- Deployment tx: `0x7a33f040a7794906c02c037251799f085ffe91a9d84d0699afd3b30509a873bf`
 
 ## Release workflow
 
-1. Creator calls `create_release` with a GEN deposit and publisher address.
-2. Publisher calls `accept_release`.
+1. Creator calls `create_release` with an immutable public source URL and publisher address.
+2. Publisher calls payable `accept_release` and locks the GEN collateral.
 3. Creator submits public terms evidence.
 4. Publisher submits public live-use evidence.
-5. Either party can call `request_consent_review`; validators fetch evidence and settle the decision.
+5. Either party may submit immutable public counter-evidence, then call `request_consent_review`; validators visually compare the source and live use, fetch all evidence, and settle the decision.
 
 | Consent decision | Settlement |
 | --- | --- |
