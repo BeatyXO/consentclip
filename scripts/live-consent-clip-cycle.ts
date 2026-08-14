@@ -15,12 +15,17 @@ const publisherClient = createClient({ chain: studionet, account: publisher });
 const sourceUrl = "https://example.com";
 const terms = "Publisher may use this exact testimonial only on the designated campaign page.";
 const attestation = "a".repeat(64);
-const challengeEndsAt = "2026-12-01";
-const expiresAt = "2027-01-01";
+const challengeEndsAt = process.env.CONSENTCLIP_CHALLENGE_ENDS_AT ?? "2026-12-01";
+const expiresAt = process.env.CONSENTCLIP_EXPIRES_AT ?? "2027-01-01";
+const writeGapMs = 65_000;
+let lastWriteAt = 0;
 
 async function write(client: ReturnType<typeof createClient>, name: string, args: unknown[], value = 0n) {
+  const waitMs = Math.max(0, writeGapMs - (Date.now() - lastWriteAt));
+  if (waitMs) await new Promise((resolve) => setTimeout(resolve, waitMs));
   const hash = await client.writeContract({ address: deployedAddress, functionName: name, args: args as never[], value });
   const receipt = await client.waitForTransactionReceipt({ hash, status: TransactionStatus.FINALIZED, interval: 12_000, retries: 90 });
+  lastWriteAt = Date.now();
   if (receipt.txExecutionResultName === ExecutionResult.FINISHED_WITH_ERROR) throw new Error(`${name} failed: ${hash}`);
   console.log(`${name}: ${hash}`);
 }
@@ -39,12 +44,16 @@ async function createAndAccept(label: string) {
 }
 
 async function main() {
-  // Full review path: creator/publisher are intentionally the same funded test wallet.
+  // Evidence path: review intentionally waits for the on-chain challenge-close date.
   const reviewId = await createAndAccept("StudioNet visual consent-review verification");
   await write(creatorClient, "submit_terms_evidence", [reviewId, sourceUrl, attestation, "Immutable source and granted terms."]);
   await write(publisherClient, "submit_usage_evidence", [reviewId, sourceUrl, attestation, "Live campaign use for visual comparison."]);
   await write(creatorClient, "submit_counter_evidence", [reviewId, sourceUrl, attestation, "Counter-evidence available to validators."]);
-  await write(creatorClient, "request_consent_review", [reviewId]);
+  if (new Date(`${challengeEndsAt}T00:00:00Z`) <= new Date()) {
+    await write(creatorClient, "request_consent_review", [reviewId]);
+  } else {
+    console.log(`request_consent_review deferred until ${challengeEndsAt}; the challenge window is intentionally still open.`);
+  }
 
   // Creator voluntary-release path.
   const releaseId = await createAndAccept("StudioNet voluntary release verification");
@@ -55,7 +64,7 @@ async function main() {
   await write(creatorClient, "create_release", ["StudioNet unaccepted recovery verification", "testimonial", publisher.address.toLowerCase(), sourceUrl, attestation, terms, challengeEndsAt, expiresAt]);
   await write(creatorClient, "recover_unaccepted", [unacceptedId]);
 
-  console.log("recover_undetermined is exercised by direct tests; it can only be called after a genuine consensus result is undetermined.");
+  console.log("recover_undetermined requires a genuine undetermined consensus result; recover_expired requires the on-chain expiry date. Both are exercised by direct lifecycle tests.");
 }
 
 main().catch((error) => { console.error(error); process.exit(1); });
