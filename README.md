@@ -12,8 +12,8 @@ Everything else—roles, deposits, evidence indexing, settlement arithmetic, and
 
 ## Live StudioNet contract
 
-- Contract: [`0x41522ecF0A0F4513c1354cB1e5fFBD0981b5290B`](https://genlayer-explorer.vercel.app/address/0x41522ecF0A0F4513c1354cB1e5fFBD0981b5290B)
-- Deployment transaction: [`0x7a33f040a7794906c02c037251799f085ffe91a9d84d0699afd3b30509a873bf`](https://genlayer-explorer.vercel.app/tx/0x7a33f040a7794906c02c037251799f085ffe91a9d84d0699afd3b30509a873bf)
+- Contract: [`0x1A3926f04E74f6B22d9145FADCEa0fa449D4cf19`](https://genlayer-explorer.vercel.app/address/0x1A3926f04E74f6B22d9145FADCEa0fa449D4cf19)
+- Deployment transaction: [`0x4a364122e926c84c59087ed9e42aa7b8c129c896a8f629585a4ca429daf75d03`](https://genlayer-explorer.vercel.app/tx/0x4a364122e926c84c59087ed9e42aa7b8c129c896a8f629585a4ca429daf75d03)
 
 ## Release workflow
 
