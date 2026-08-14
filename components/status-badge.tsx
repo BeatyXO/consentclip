@@ -12,6 +12,7 @@ const copy: Record<CustodyStatus, string> = {
   undetermined: "Retry needed",
   recovered_unaccepted: "Deposit recovered",
   recovered_undetermined: "Deposit returned",
+  recovered_expired: "Expired deposit returned",
 };
 
 const tone: Record<CustodyStatus, string> = {
@@ -25,6 +26,7 @@ const tone: Record<CustodyStatus, string> = {
   undetermined: "border-rustline/80 bg-rustline/20",
   recovered_unaccepted: "border-vault-500/80 bg-vault-500/25",
   recovered_undetermined: "border-vault-500/80 bg-vault-500/25",
+  recovered_expired: "border-vault-500/80 bg-vault-500/25",
 };
 
 export function StatusBadge({ status }: { status: CustodyStatus }) {

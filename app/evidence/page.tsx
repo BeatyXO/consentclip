@@ -117,6 +117,7 @@ export default function EvidencePage() {
     const caseId = String(form.get("caseId") ?? "").trim();
     const kind = String(form.get("kind") ?? "terms") as EvidenceWriteKind;
     const url = String(form.get("url") ?? "").trim();
+    const sha256 = String(form.get("sha256") ?? "").trim().toLowerCase();
     const note = String(form.get("note") ?? "").trim();
 
     if (url.length < 12 || url.length > 300 || !url.startsWith("http")) {
@@ -130,6 +131,11 @@ export default function EvidencePage() {
       setError("Evidence note is too long for the contract. Keep it at 500 characters or less.");
       return;
     }
+    if (!/^[a-f0-9]{64}$/.test(sha256)) {
+      setStatus("error");
+      setError("Provide the 64-character SHA-256 digest for the exact evidence content.");
+      return;
+    }
 
     const identity =
       wallet.mode === "browser" && wallet.privateKey
@@ -139,7 +145,7 @@ export default function EvidencePage() {
     try {
       setStatus("submitting");
       const functionName = kind === "usage" ? "submit_usage_evidence" : kind === "counter" ? "submit_counter_evidence" : "submit_terms_evidence";
-      const result = await writeCustodi(identity, functionName, [caseId, url, note]);
+      const result = await writeCustodi(identity, functionName, [caseId, url, sha256, note]);
       setTxHash(result.hash);
       setStatus("finalized");
       await loadEvidence(caseId);
@@ -200,6 +206,11 @@ export default function EvidencePage() {
             <div className="grid gap-2">
               <Label htmlFor="url">Public URL</Label>
               <Input id="url" maxLength={300} name="url" type="url" placeholder="https://…" required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="sha256">Content SHA-256 attestation</Label>
+              <Input id="sha256" name="sha256" minLength={64} maxLength={64} pattern="[A-Fa-f0-9]{64}" placeholder="64-character SHA-256 digest" required />
+              <p className="text-xs text-vault-950/60">Hash the exact file or preserved page export; this attestation is stored with the evidence.</p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="note">Evidence note</Label>

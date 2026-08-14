@@ -23,6 +23,7 @@ export const contractFunctions = [
   "release_deposit",
   "recover_unaccepted",
   "recover_undetermined",
+  "recover_expired",
   "get_release",
   "get_releases",
   "get_evidence",

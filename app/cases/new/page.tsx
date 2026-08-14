@@ -38,7 +38,9 @@ export default function NewCasePage() {
     const borrower = String(form.get("borrower") ?? "").trim();
     const baseline = String(form.get("baseline") ?? "").trim();
     const dueAt = String(form.get("due") ?? "").trim();
+    const challengeEndsAt = String(form.get("challengeEndsAt") ?? "").trim();
     const sourceUrl = String(form.get("sourceUrl") ?? "").trim();
+    const sourceSha256 = String(form.get("sourceSha256") ?? "").trim().toLowerCase();
 
     const identity =
       wallet.mode === "browser" && wallet.privateKey
@@ -50,7 +52,7 @@ export default function NewCasePage() {
       const result = await writeCustodi(
         identity,
         "create_release",
-        [title, category, borrower, sourceUrl, baseline, dueAt],
+        [title, category, borrower, sourceUrl, sourceSha256, baseline, challengeEndsAt, dueAt],
       );
       setTxHash(result.hash);
       setStatus("finalized");
@@ -90,6 +92,10 @@ export default function NewCasePage() {
                   <Label htmlFor="sourceUrl">Immutable source URL</Label>
                   <Input id="sourceUrl" name="sourceUrl" type="url" placeholder="https://source-work.example" required />
                 </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="sourceSha256">Source SHA-256 attestation</Label>
+                  <Input id="sourceSha256" name="sourceSha256" minLength={64} maxLength={64} pattern="[A-Fa-f0-9]{64}" placeholder="64-character SHA-256 digest" required />
+                </div>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
@@ -97,8 +103,12 @@ export default function NewCasePage() {
                   <Input id="borrower" name="borrower" placeholder="0x…" required />
                 </div>
                 <div className="grid gap-2">
+                  <Label htmlFor="challengeEndsAt">Challenge closes</Label>
+                  <Input id="challengeEndsAt" name="challengeEndsAt" type="date" required />
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="due">Consent expiry</Label>
-                  <Input id="due" name="due" type="datetime-local" required />
+                  <Input id="due" name="due" type="date" required />
                 </div>
               </div>
               <div className="grid gap-2">

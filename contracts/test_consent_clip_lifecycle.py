@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 TRANSFERS = []
+HASH = "a" * 64
 
 class _Decorator:
     def __call__(self, value): return value
@@ -47,6 +48,7 @@ class ConsentClipLifecycleTests(unittest.TestCase):
         TRANSFERS.clear()
         self.module, self.gl = load_contract()
         self.contract = self.module.ConsentClip()
+        self.gl.message_raw["datetime"] = "2026-01-10T12:00:00Z"
 
     def sender(self, value): self.gl.message.sender_address.as_hex = value
 
@@ -54,7 +56,7 @@ class ConsentClipLifecycleTests(unittest.TestCase):
         self.sender(self.creator)
         self.gl.message.value = 0
         release_id = self.contract.create_release("Creator testimonial", "video", self.publisher, "https://example.com/source",
-            "Publisher may use this testimonial only in the specified campaign.", "2026-12-31")
+            HASH, "Publisher may use this testimonial only in the specified campaign.", "2026-01-20", "2026-02-01")
         self.sender(self.publisher)
         self.gl.message.value = deposit
         self.contract.accept_release(release_id)
@@ -63,16 +65,20 @@ class ConsentClipLifecycleTests(unittest.TestCase):
     def ready_for_review(self):
         release_id = self.create()
         self.sender(self.creator)
-        self.contract.submit_terms_evidence(release_id, "https://example.com/terms", "Approved campaign terms")
+        self.contract.submit_terms_evidence(release_id, "https://example.com/terms", HASH, "Approved campaign terms")
         self.sender(self.publisher)
-        self.contract.submit_usage_evidence(release_id, "https://example.com/live-use", "Published campaign use")
+        self.contract.submit_usage_evidence(release_id, "https://example.com/live-use", HASH, "Published campaign use")
         return release_id
+
+    def close_challenge(self):
+        self.gl.message_raw["datetime"] = "2026-01-20T00:00:00Z"
 
     def release(self, release_id):
         return json.loads(self.contract.get_release(release_id))
 
     def test_complete_release_cycle_uses_every_public_path(self):
         release_id = self.ready_for_review()
+        self.close_challenge()
         self.contract._review_consent = lambda *_: json.dumps({"verdict_class": "within_scope", "confidence": 91, "reasoning": "Use matches terms."})
         self.contract.request_consent_review(release_id)
         release = self.release(release_id)
@@ -93,7 +99,9 @@ class ConsentClipLifecycleTests(unittest.TestCase):
         for verdict, transfers in expected.items():
             with self.subTest(verdict=verdict):
                 TRANSFERS.clear()
+                self.gl.message_raw["datetime"] = "2026-01-10T12:00:00Z"
                 release_id = self.ready_for_review()
+                self.close_challenge()
                 self.contract._review_consent = lambda *_: json.dumps({"verdict_class": verdict, "confidence": 90, "reasoning": "test"})
                 self.contract.request_consent_review(release_id)
                 self.assertEqual(TRANSFERS, transfers)
@@ -102,7 +110,7 @@ class ConsentClipLifecycleTests(unittest.TestCase):
         self.sender(self.creator)
         self.gl.message.value = 0
         release_id = self.contract.create_release("Creator testimonial", "video", self.publisher, "https://example.com/source",
-            "Publisher may use this testimonial only in the specified campaign.", "2026-12-31")
+            HASH, "Publisher may use this testimonial only in the specified campaign.", "2026-01-20", "2026-02-01")
         self.contract.recover_unaccepted(release_id)
         self.assertEqual(TRANSFERS, [])
         self.assertEqual(self.release(release_id)["status"], "recovered_unaccepted")
@@ -110,17 +118,49 @@ class ConsentClipLifecycleTests(unittest.TestCase):
     def test_counter_evidence_is_immutable_and_included(self):
         release_id = self.ready_for_review()
         self.sender(self.creator)
-        self.contract.submit_counter_evidence(release_id, "https://example.com/counter", "Creator supplied counter-evidence")
+        self.contract.submit_counter_evidence(release_id, "https://example.com/counter", HASH, "Creator supplied counter-evidence")
         kinds = [record["kind"] for record in json.loads(self.contract.get_evidence(release_id))]
         self.assertEqual(kinds, ["terms", "usage", "counter"])
 
     def test_either_party_can_recover_an_undetermined_release(self):
         release_id = self.ready_for_review()
+        self.close_challenge()
         self.contract._review_consent = lambda *_: '{"verdict_class":"undetermined","confidence":0,"reasoning":"unclear"}'
         self.contract.request_consent_review(release_id)
         self.sender(self.creator)
         self.contract.recover_undetermined(release_id)
         self.assertEqual(TRANSFERS, [(self.publisher, 100)])
         self.assertEqual(self.release(release_id)["status"], "recovered_undetermined")
+
+    def test_evidence_order_and_challenge_window_are_enforced(self):
+        release_id = self.create()
+        self.sender(self.publisher)
+        with self.assertRaisesRegex(ValueError, "EXPECTED_TERMS_EVIDENCE_FIRST"):
+            self.contract.submit_usage_evidence(release_id, "https://example.com/live-use", HASH, "Published")
+        self.sender(self.creator)
+        self.contract.submit_terms_evidence(release_id, "https://example.com/terms", HASH, "Terms")
+        self.sender(self.publisher)
+        self.contract.submit_usage_evidence(release_id, "https://example.com/live-use", HASH, "Published")
+        self.gl.message_raw["datetime"] = "2026-01-20T00:00:00Z"
+        with self.assertRaisesRegex(ValueError, "EXPECTED_EVIDENCE_WINDOW_CLOSED"):
+            self.contract.submit_counter_evidence(release_id, "https://example.com/counter", HASH, "Late")
+
+    def test_source_render_failure_becomes_recoverable_undetermined(self):
+        release_id = self.ready_for_review()
+        self.close_challenge()
+        self.contract._review_consent = lambda *_: '{"verdict_class":"undetermined","confidence":0,"reasoning":"EXTERNAL: source render failed."}'
+        self.sender(self.creator)
+        self.contract.request_consent_review(release_id)
+        self.sender(self.publisher)
+        self.contract.recover_undetermined(release_id)
+        self.assertEqual(TRANSFERS, [(self.publisher, 100)])
+
+    def test_publisher_can_recover_after_expiry(self):
+        release_id = self.ready_for_review()
+        self.gl.message_raw["datetime"] = "2026-02-01T00:00:00Z"
+        self.sender(self.publisher)
+        self.contract.recover_expired(release_id)
+        self.assertEqual(self.release(release_id)["status"], "recovered_expired")
+        self.assertEqual(TRANSFERS, [(self.publisher, 100)])
 
 if __name__ == "__main__": unittest.main()

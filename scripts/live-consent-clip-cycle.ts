@@ -14,6 +14,9 @@ const creatorClient = createClient({ chain: studionet, account: creator });
 const publisherClient = createClient({ chain: studionet, account: publisher });
 const sourceUrl = "https://example.com";
 const terms = "Publisher may use this exact testimonial only on the designated campaign page.";
+const attestation = "a".repeat(64);
+const challengeEndsAt = "2026-12-01";
+const expiresAt = "2027-01-01";
 
 async function write(client: ReturnType<typeof createClient>, name: string, args: unknown[], value = 0n) {
   const hash = await client.writeContract({ address: deployedAddress, functionName: name, args: args as never[], value });
@@ -30,7 +33,7 @@ async function nextReleaseId() {
 
 async function createAndAccept(label: string) {
   const id = await nextReleaseId();
-  await write(creatorClient, "create_release", [label, "testimonial", publisher.address.toLowerCase(), sourceUrl, terms, "2027-01-01"]);
+  await write(creatorClient, "create_release", [label, "testimonial", publisher.address.toLowerCase(), sourceUrl, attestation, terms, challengeEndsAt, expiresAt]);
   await write(publisherClient, "accept_release", [id], 10n ** 15n);
   return id;
 }
@@ -38,9 +41,9 @@ async function createAndAccept(label: string) {
 async function main() {
   // Full review path: creator/publisher are intentionally the same funded test wallet.
   const reviewId = await createAndAccept("StudioNet visual consent-review verification");
-  await write(creatorClient, "submit_terms_evidence", [reviewId, sourceUrl, "Immutable source and granted terms."]);
-  await write(publisherClient, "submit_usage_evidence", [reviewId, sourceUrl, "Live campaign use for visual comparison."]);
-  await write(creatorClient, "submit_counter_evidence", [reviewId, sourceUrl, "Counter-evidence available to validators."]);
+  await write(creatorClient, "submit_terms_evidence", [reviewId, sourceUrl, attestation, "Immutable source and granted terms."]);
+  await write(publisherClient, "submit_usage_evidence", [reviewId, sourceUrl, attestation, "Live campaign use for visual comparison."]);
+  await write(creatorClient, "submit_counter_evidence", [reviewId, sourceUrl, attestation, "Counter-evidence available to validators."]);
   await write(creatorClient, "request_consent_review", [reviewId]);
 
   // Creator voluntary-release path.
@@ -49,7 +52,7 @@ async function main() {
 
   // No collateral is accepted until the publisher accepts, so this branch cannot trap GEN.
   const unacceptedId = await nextReleaseId();
-  await write(creatorClient, "create_release", ["StudioNet unaccepted recovery verification", "testimonial", publisher.address.toLowerCase(), sourceUrl, terms, "2027-01-01"]);
+  await write(creatorClient, "create_release", ["StudioNet unaccepted recovery verification", "testimonial", publisher.address.toLowerCase(), sourceUrl, attestation, terms, challengeEndsAt, expiresAt]);
   await write(creatorClient, "recover_unaccepted", [unacceptedId]);
 
   console.log("recover_undetermined is exercised by direct tests; it can only be called after a genuine consensus result is undetermined.");

@@ -17,11 +17,11 @@ Everything else—roles, deposits, evidence indexing, settlement arithmetic, and
 
 ## Release workflow
 
-1. Creator calls `create_release` with an immutable public source URL and publisher address.
+1. Creator calls `create_release` with a public source URL, its SHA-256 attestation, publisher address, challenge-close date, and expiry date.
 2. Publisher calls payable `accept_release` and locks the GEN collateral.
 3. Creator submits public terms evidence.
 4. Publisher submits public live-use evidence.
-5. Either party may submit immutable public counter-evidence, then call `request_consent_review`; validators visually compare the source and live use, fetch all evidence, and settle the decision.
+5. Both parties may submit immutable public counter-evidence through the recorded challenge-close date. Review opens after that fair window closes; validators visually compare the source and live use, fetch all evidence, and settle the decision.
 
 | Consent decision | Settlement |
 | --- | --- |
@@ -30,20 +30,21 @@ Everything else—roles, deposits, evidence indexing, settlement arithmetic, and
 | `material_breach` | 100% to creator |
 | `undetermined` | Either party can recover the deposit to the publisher |
 
-All payouts are emitted only after transaction finality. An unaccepted release can be recovered by the creator, so no GEN is stranded.
+All URLs and their SHA-256 attestations are retained on-chain in submission order. Render failures resolve to `undetermined`, allowing either party to return the collateral to the publisher. After expiry, the publisher can recover any unsettled collateral. All payouts are emitted only after transaction finality.
 
 ## Contract API
 
 ```text
-create_release(title, media_type, publisher, source_url, consent_terms, expires_at)
+create_release(title, media_type, publisher, source_url, source_sha256, consent_terms, challenge_ends_at, expires_at)
 accept_release(release_id) payable
-submit_terms_evidence(release_id, url, note)
-submit_usage_evidence(release_id, url, note)
-submit_counter_evidence(release_id, url, note)
+submit_terms_evidence(release_id, url, sha256, note)
+submit_usage_evidence(release_id, url, sha256, note)
+submit_counter_evidence(release_id, url, sha256, note)
 release_deposit(release_id)
 request_consent_review(release_id)
 recover_unaccepted(release_id)
 recover_undetermined(release_id)
+recover_expired(release_id)
 get_release(release_id)
 get_releases(limit)
 get_evidence(release_id)
