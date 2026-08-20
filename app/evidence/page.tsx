@@ -208,9 +208,10 @@ export default function EvidencePage() {
               <Input id="url" maxLength={300} name="url" type="url" placeholder="https://…" required />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="sha256">Content SHA-256 attestation</Label>
+              <Label htmlFor="sha256">Claimed content SHA-256</Label>
               <Input id="sha256" name="sha256" minLength={64} maxLength={64} pattern="[A-Fa-f0-9]{64}" placeholder="64-character SHA-256 digest" required />
-              <p className="text-xs text-vault-950/60">Hash the exact file or preserved page export; this attestation is stored with the evidence.</p>
+              <p className="text-xs text-vault-950/60">GenLayer independently hashes the canonical capture. The evidence is stored only when that verified digest matches this claim.</p>
+              <p className="text-xs text-vault-950/60">Use the canonical screenshot digest for usage or the rendered-text digest for terms/counter evidence; GenLayer remains authoritative.</p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="note">Evidence note</Label>
@@ -270,6 +271,7 @@ export default function EvidencePage() {
                     <Link className="mt-2 block break-all text-sm underline" href={item.url} target="_blank">
                       {item.url}
                     </Link>
+                    <p className="mt-2 font-mono text-xs text-vault-950/60">{item.integrityStatus === "verified" ? "Verified by GenLayer" : "Integrity status unavailable"} · {item.captureMode || "legacy capture"}</p>
                     {item.note ? <p className="mt-2 text-sm leading-6 text-vault-950/75">{item.note}</p> : null}
                   </article>
                 ))}

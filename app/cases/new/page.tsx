@@ -89,11 +89,11 @@ export default function NewCasePage() {
                   <Input id="category" name="category" placeholder="Item category" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="sourceUrl">Immutable source URL</Label>
+                  <Label htmlFor="sourceUrl">Public source URL</Label>
                   <Input id="sourceUrl" name="sourceUrl" type="url" placeholder="https://source-work.example" required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="sourceSha256">Source SHA-256 attestation</Label>
+                  <Label htmlFor="sourceSha256">Claimed source SHA-256</Label>
                   <Input id="sourceSha256" name="sourceSha256" minLength={64} maxLength={64} pattern="[A-Fa-f0-9]{64}" placeholder="64-character SHA-256 digest" required />
                 </div>
               </div>
@@ -120,6 +120,7 @@ export default function NewCasePage() {
                   required
                 />
               </div>
+              <p className="text-xs text-vault-950/60">Use a direct public media URL. The contract hashes the raw media bytes and only finalizes if they match this claimed digest.</p>
               <div className="grid gap-2">
                 <Label htmlFor="photo">Pickup evidence URL</Label>
                 <Input id="photo" name="photo" type="url" placeholder="https://…" />
@@ -152,8 +153,8 @@ export default function NewCasePage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-vault-950/75">
             <p className="flex gap-2"><Coins className="h-4 w-4 shrink-0" /> Deposit value and settlement state.</p>
-            <p className="flex gap-2"><Camera className="h-4 w-4 shrink-0" /> Public evidence URLs, hashes, notes, and author.</p>
-            <p>Image files themselves stay off-chain; the contract fetches public URLs during consensus.</p>
+            <p className="flex gap-2"><Camera className="h-4 w-4 shrink-0" /> Public evidence URLs, validator-verified commitments, notes, and author.</p>
+            <p>Image files stay off-chain. GenLayer captures and verifies the adjudication representation at submission and again at review.</p>
           </CardContent>
         </Card>
         {status === "submitting" ? <TxStatus current="PROPOSING" /> : null}

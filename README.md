@@ -10,6 +10,12 @@ A URL check cannot decide whether a live campaign use stays within natural-langu
 
 Everything else—roles, deposits, evidence indexing, settlement arithmetic, and recovery paths—is deterministic and on-chain.
 
+## Evidence preservation
+
+The SHA-256 supplied by a caller is only a claim. At submission, GenLayer validators capture the canonical adjudication representation and the write is rejected unless the validator-derived digest matches the claim. Source and usage commitments cover the exact raw media response bytes passed to vision adjudication; terms and counter-evidence commitments cover the exact UTF-8 rendered text passed to the prompt. The contract records the verified digest, capture mode, and integrity status.
+
+Before adjudication, validators capture every external item again in the same mode and compare it to that verified commitment. A changed, missing, or non-reproducible URL is excluded from the semantic judge and produces an `undetermined` integrity-safe result. A URL is never assumed immutable.
+
 ## Live StudioNet contract
 
 - Contract: [`0x1A3926f04E74f6B22d9145FADCEa0fa449D4cf19`](https://genlayer-explorer.vercel.app/address/0x1A3926f04E74f6B22d9145FADCEa0fa449D4cf19)
@@ -17,7 +23,7 @@ Everything else—roles, deposits, evidence indexing, settlement arithmetic, and
 
 ## Release workflow
 
-1. Creator calls `create_release` with a public source URL, its SHA-256 attestation, publisher address, challenge-close date, and expiry date.
+1. Creator calls `create_release` with a public source URL, a claimed SHA-256, publisher address, challenge-close date, and expiry date; validators independently verify the claim before storing the release.
 2. Publisher calls payable `accept_release` and locks the GEN collateral.
 3. Creator submits public terms evidence.
 4. Publisher submits public live-use evidence.
@@ -30,7 +36,7 @@ Everything else—roles, deposits, evidence indexing, settlement arithmetic, and
 | `material_breach` | 100% to creator |
 | `undetermined` | Either party can recover the deposit to the publisher |
 
-All URLs and their SHA-256 attestations are retained on-chain in submission order. Render failures resolve to `undetermined`, allowing either party to return the collateral to the publisher. After expiry, the publisher can recover any unsettled collateral. All payouts are emitted only after transaction finality.
+All URLs and validator-verified commitments are retained on-chain in submission order. Render failures or commitment mismatches resolve to `undetermined`, allowing either party to return the collateral to the publisher. After expiry, the publisher can recover any unsettled collateral. All payouts are emitted only after transaction finality.
 
 ## Contract API
 

@@ -6,7 +6,7 @@ export type ConsentRelease = {
   status: ReleaseStatus; startedAt: string; expiresAt: string; termsEvidence: number; usageEvidence: number;
   verdict?: { class: ConsentVerdict; releaseToPublisher: bigint; releaseToCreator: bigint; confidence: number; reasoning: string };
 };
-export type EvidenceItem = { id: number; releaseId: number; kind: EvidenceKind; url: string; sha256: string; note: string; submittedBy: string; submittedAt: string };
+export type EvidenceItem = { id: number; releaseId: number; kind: EvidenceKind; url: string; sha256: string; verifiedSha256: string; captureMode: string; integrityStatus: string; note: string; submittedBy: string; submittedAt: string };
 // Temporary view-model aliases keep the route component surface compact while it renders releases.
 export type CustodyStatus = ReleaseStatus;
 export type DamageVerdict = ConsentVerdict;
