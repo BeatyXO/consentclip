@@ -18,8 +18,8 @@ Before adjudication, validators capture every external item again in the same mo
 
 ## Live StudioNet contract
 
-- Contract: [`0x1A3926f04E74f6B22d9145FADCEa0fa449D4cf19`](https://genlayer-explorer.vercel.app/address/0x1A3926f04E74f6B22d9145FADCEa0fa449D4cf19)
-- Deployment transaction: [`0x4a364122e926c84c59087ed9e42aa7b8c129c896a8f629585a4ca429daf75d03`](https://genlayer-explorer.vercel.app/tx/0x4a364122e926c84c59087ed9e42aa7b8c129c896a8f629585a4ca429daf75d03)
+- Contract: [`0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9`](https://genlayer-explorer.vercel.app/address/0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9)
+- Deployment transaction: [`0x1938ad7e95f1650dac0f57a6bb003eb1c650de3a86335fe23e53fe3e8560d5f6`](https://genlayer-explorer.vercel.app/tx/0x1938ad7e95f1650dac0f57a6bb003eb1c650de3a86335fe23e53fe3e8560d5f6)
 
 ## Release workflow
 

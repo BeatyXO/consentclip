@@ -75,18 +75,18 @@ export default function NewCasePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Handoff terms</CardTitle>
+          <CardTitle>Consent release terms</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="grid gap-5" onSubmit={onSubmit}>
               <div className="grid gap-2">
                 <Label htmlFor="title">Media title</Label>
-                <Input id="title" name="title" placeholder="Item name and handoff purpose" required />
+                <Input id="title" name="title" placeholder="Media title and campaign purpose" required />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="category">Media type</Label>
-                  <Input id="category" name="category" placeholder="Item category" required />
+                  <Input id="category" name="category" placeholder="Video, testimonial, or UGC" required />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="sourceUrl">Public source URL</Label>
@@ -122,14 +122,14 @@ export default function NewCasePage() {
               </div>
               <p className="text-xs text-vault-950/60">Use a direct public media URL. The contract hashes the raw media bytes and only finalizes if they match this claimed digest.</p>
               <div className="grid gap-2">
-                <Label htmlFor="photo">Pickup evidence URL</Label>
+                <Label htmlFor="photo">Usage evidence URL</Label>
                 <Input id="photo" name="photo" type="url" placeholder="https://…" />
                 <p className="text-xs text-vault-950/60">
                   This transaction creates the on-chain release. Add the published usage URL from the Evidence page.
                 </p>
               </div>
               <Button type="submit" size="lg" disabled={!wallet.address || status === "submitting"}>
-                <FilePlus2 className="h-4 w-4" /> {status === "submitting" ? "Writing to GenLayer…" : "Create handoff"}
+                <FilePlus2 className="h-4 w-4" /> {status === "submitting" ? "Writing to GenLayer…" : "Create release"}
               </Button>
               {!wallet.address ? <p className="text-sm text-vault-950/70">Choose injected or browser wallet before writing.</p> : null}
               {error ? <p className="rounded-md border border-rustline/40 bg-rustline/10 p-3 text-sm text-rustline">{error}</p> : null}

@@ -44,7 +44,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
       setEvidence(evidenceList);
       setItem(toCustodyCase(parsed, evidenceList));
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Could not reach the Custodi contract.");
+      setLoadError(err instanceof Error ? err.message : "Could not reach the ConsentClip contract.");
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           >
             <ArrowLeft className="h-3 w-3" /> All cases
           </Link>
-          <p className="mt-2 font-mono text-xs uppercase tracking-[0.24em] text-amberline">Case #{item.id}</p>
+          <p className="mt-2 font-mono text-xs uppercase tracking-[0.24em] text-amberline">Release #{item.id}</p>
           <h1 className="mt-1 text-4xl font-black">{item.title}</h1>
         </div>
         <div className="flex items-center gap-3">
@@ -145,11 +145,11 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
           <CardContent><p className="text-sm">{item.category}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Pickup proofs</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Terms evidence</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-black">{item.pickupEvidence}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Return proofs</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Usage evidence</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-black">{item.returnEvidence}</p></CardContent>
         </Card>
       </section>
@@ -193,11 +193,11 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
             <CardHeader><CardTitle>Parties</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div>
-                <p className="text-xs font-bold text-vault-950/50">Lender</p>
+                <p className="text-xs font-bold text-vault-950/50">Creator</p>
                 <p className="font-mono">{shortAddress(item.lender)}</p>
               </div>
               <div>
-                <p className="text-xs font-bold text-vault-950/50">Borrower</p>
+                <p className="text-xs font-bold text-vault-950/50">Publisher</p>
                 <p className="font-mono">{item.borrower ? shortAddress(item.borrower) : "Not yet accepted"}</p>
               </div>
               <div>
@@ -215,7 +215,7 @@ export default function CaseDetailPage({ params }: { params: Promise<{ id: strin
                 <p className="font-semibold capitalize">{item.verdict.class.replace(/_/g, " ")}</p>
                 <p className="text-xs text-vault-950/60">{item.verdict.reasoning}</p>
                 <p className="text-xs">
-                  Release to borrower: {formatGen(item.verdict.releaseToBorrower)} · to lender:{" "}
+                  Release to publisher: {formatGen(item.verdict.releaseToBorrower)} · to creator:{" "}
                   {formatGen(item.verdict.releaseToLender)}
                 </p>
                 <p className="text-xs text-vault-950/50">Confidence: {item.verdict.confidence}%</p>

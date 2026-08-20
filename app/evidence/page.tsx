@@ -64,7 +64,7 @@ export default function EvidencePage() {
 
   const loadCases = useCallback(async () => {
     if (!contractAddress) {
-      setError("No Custodi contract address is configured.");
+      setError("No ConsentClip contract address is configured.");
       setLoadingCases(false);
       return;
     }
@@ -92,7 +92,7 @@ export default function EvidencePage() {
       setSelectedCaseId(nextSelected);
       await loadEvidence(nextSelected);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not load your Custodi cases from GenLayer.");
+      setError(caught instanceof Error ? caught.message : "Could not load your ConsentClip releases from GenLayer.");
     } finally {
       setLoadingCases(false);
     }
@@ -180,13 +180,13 @@ export default function EvidencePage() {
                 {cases.length === 0 ? <option value="">No wallet cases found</option> : null}
                 {cases.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.title} — Case #{item.id}
+                    {item.title} — Release #{item.id}
                   </option>
                 ))}
               </select>
               {selectedCase ? (
                 <p className="text-xs text-vault-950/60">
-                  Lender {shortAddress(selectedCase.lender)} · Borrower {shortAddress(selectedCase.borrower)}
+                  Creator {shortAddress(selectedCase.lender)} · Publisher {shortAddress(selectedCase.borrower)}
                 </p>
               ) : null}
             </div>
@@ -199,7 +199,7 @@ export default function EvidencePage() {
                 <option value="counter">Counter-evidence</option>
               </select>
               <p className="text-xs text-vault-950/60">
-                Repair quotes can be attached as a public URL in the note, but the contract settlement flow compares pickup and return evidence.
+                Add campaign context in the note. The contract evaluates consent terms, live usage, and counter-evidence.
               </p>
             </div>
 

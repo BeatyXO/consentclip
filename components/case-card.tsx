@@ -30,7 +30,7 @@ export function CaseCard({ item }: { item: CustodyCase }) {
             </div>
             <div className="rounded-md border border-vault-700/20 p-2">
               <Camera className="mb-1 h-4 w-4" />
-              {item.pickupEvidence + item.returnEvidence} records
+              {item.pickupEvidence + item.returnEvidence} evidence records
             </div>
             <div className="rounded-md border border-vault-700/20 p-2">
               <Timer className="mb-1 h-4 w-4" />

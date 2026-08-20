@@ -67,7 +67,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     const pk = existing ?? generatePrivateKey();
     if (!existing) {
       const ok = window.confirm(
-        "Custodi will create a browser wallet stored in localStorage. Export it if you care about this identity; clearing site data destroys it.",
+        "ConsentClip will create a browser wallet stored in localStorage. Export it if you care about this identity; clearing site data destroys it.",
       );
       if (!ok) return;
       window.localStorage.setItem(STORAGE_KEY, pk);
@@ -100,7 +100,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   function deleteBrowserWallet() {
     const ok = window.confirm(
-      "Delete the saved Custodi browser wallet from this browser? Export it first if you want to keep this identity.",
+      "Delete the saved ConsentClip browser wallet from this browser? Export it first if you want to keep this identity.",
     );
     if (!ok) return;
     window.localStorage.removeItem(STORAGE_KEY);
