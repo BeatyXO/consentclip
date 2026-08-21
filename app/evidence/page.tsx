@@ -23,7 +23,7 @@ import type { CustodyCase, EvidenceItem } from "@/lib/types";
 import { shortAddress } from "@/lib/utils";
 import { useWallet } from "@/lib/wallet";
 
-type EvidenceWriteKind = "terms" | "usage" | "counter";
+type EvidenceWriteKind = "terms" | "usage" | "disputed_usage" | "counter";
 type SubmitStatus = "idle" | "submitting" | "finalized" | "error";
 
 const selectClass =
@@ -144,7 +144,7 @@ export default function EvidencePage() {
 
     try {
       setStatus("submitting");
-      const functionName = kind === "usage" ? "submit_usage_evidence" : kind === "counter" ? "submit_counter_evidence" : "submit_terms_evidence";
+      const functionName = kind === "usage" ? "submit_usage_evidence" : kind === "disputed_usage" ? "submit_disputed_usage_evidence" : kind === "counter" ? "submit_counter_evidence" : "submit_terms_evidence";
       const result = await writeCustodi(identity, functionName, [caseId, url, sha256, note]);
       setTxHash(result.hash);
       setStatus("finalized");
@@ -195,11 +195,12 @@ export default function EvidencePage() {
               <Label htmlFor="kind">Evidence kind</Label>
               <select className={selectClass} id="kind" name="kind" required>
                 <option value="terms">Consent terms / approved brief</option>
-                <option value="usage">Live usage evidence</option>
+                <option value="usage">Publisher claimed live usage</option>
+                <option value="disputed_usage">Creator disputed live usage</option>
                 <option value="counter">Counter-evidence</option>
               </select>
               <p className="text-xs text-vault-950/60">
-                Add campaign context in the note. The contract evaluates consent terms, live usage, and counter-evidence.
+                Publisher usage and creator disputed usage have separate protected visual slots for review.
               </p>
             </div>
 
@@ -211,7 +212,7 @@ export default function EvidencePage() {
               <Label htmlFor="sha256">Claimed content SHA-256</Label>
               <Input id="sha256" name="sha256" minLength={64} maxLength={64} pattern="[A-Fa-f0-9]{64}" placeholder="64-character SHA-256 digest" required />
               <p className="text-xs text-vault-950/60">GenLayer independently hashes the canonical capture. The evidence is stored only when that verified digest matches this claim.</p>
-              <p className="text-xs text-vault-950/60">Use the canonical screenshot digest for usage or the rendered-text digest for terms/counter evidence; GenLayer remains authoritative.</p>
+              <p className="text-xs text-vault-950/60">Use the canonical raw-media digest for publisher or creator usage visuals, and the rendered-text digest for terms/counter evidence; GenLayer remains authoritative.</p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="note">Evidence note</Label>

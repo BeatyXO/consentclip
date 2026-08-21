@@ -16,6 +16,8 @@ The SHA-256 supplied by a caller is only a claim. At submission, GenLayer valida
 
 Before adjudication, validators capture every external item again in the same mode and compare it to that verified commitment. A changed, missing, or non-reproducible URL is excluded from the semantic judge and produces an `undetermined` integrity-safe result. A URL is never assumed immutable.
 
+Review evidence is bounded by protected slots, not by global insertion order: creator terms evidence max 1, publisher primary usage visual max 1, creator disputed usage visual max 1, creator counter evidence max 2, and publisher counter evidence max 2. Excess submissions are rejected with `EXPECTED_EVIDENCE_QUOTA_EXCEEDED`, so neither party can fill the other party's review slots or crowd out the primary disputed visual.
+
 ## Live StudioNet contract
 
 - Contract: [`0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9`](https://genlayer-explorer.vercel.app/address/0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9)
@@ -26,8 +28,9 @@ Before adjudication, validators capture every external item again in the same mo
 1. Creator calls `create_release` with a public source URL, a claimed SHA-256, publisher address, challenge-close date, and expiry date; validators independently verify the claim before storing the release.
 2. Publisher calls payable `accept_release` and locks the GEN collateral.
 3. Creator submits public terms evidence.
-4. Publisher submits public live-use evidence.
-5. Both parties may submit immutable public counter-evidence through the recorded challenge-close date. Review opens after that fair window closes; validators visually compare the source and live use, fetch all evidence, and settle the decision.
+4. Publisher may submit public claimed live-use evidence through `submit_usage_evidence`.
+5. If the publisher is silent or the creator disputes a different live use, the creator may submit a public disputed live-use visual through `submit_disputed_usage_evidence`; this moves the release to `disputed` and makes it reviewable after the challenge window closes.
+6. Both parties may submit immutable public counter-evidence through the recorded challenge-close date once a primary visual exists. Review opens after that fair window closes; validators visually compare the source, creator disputed usage when present, publisher usage when present, terms, and bounded counter-evidence, then settle the decision.
 
 | Consent decision | Settlement |
 | --- | --- |
@@ -36,7 +39,7 @@ Before adjudication, validators capture every external item again in the same mo
 | `material_breach` | 100% to creator |
 | `undetermined` | Either party can recover the deposit to the publisher |
 
-All URLs and validator-verified commitments are retained on-chain in submission order. Render failures or commitment mismatches resolve to `undetermined`, allowing either party to return the collateral to the publisher. After expiry, the publisher can recover any unsettled collateral. All payouts are emitted only after transaction finality.
+All accepted URLs and validator-verified commitments are retained on-chain, while review selection uses the protected deterministic slots above. Render failures or commitment mismatches resolve to `undetermined`, allowing either party to return the collateral to the publisher. After expiry, the publisher can recover any unsettled collateral from `active`, `usage_submitted`, or `disputed`. All payouts are emitted only after transaction finality.
 
 ## Contract API
 
@@ -45,6 +48,7 @@ create_release(title, media_type, publisher, source_url, source_sha256, consent_
 accept_release(release_id) payable
 submit_terms_evidence(release_id, url, sha256, note)
 submit_usage_evidence(release_id, url, sha256, note)
+submit_disputed_usage_evidence(release_id, url, sha256, note)
 submit_counter_evidence(release_id, url, sha256, note)
 release_deposit(release_id)
 request_consent_review(release_id)

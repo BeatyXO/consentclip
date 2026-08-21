@@ -1,13 +1,22 @@
-# Reviewer response: evidence preservation
+# Reviewer response: GenLayer resubmission fixes
 
-**Issue.** Caller-supplied hashes were previously stored without validator comparison to fetched content.
+## Steward request mapping
 
-**Fix.** The contract now captures canonical evidence in GenLayer consensus at submission and rejects a claimed SHA-256 that differs from the validator-derived digest. It records `verified_sha256`, `capture_mode`, and `integrity_status: verified` for every evidence item and equivalent source fields on the release.
+| Steward concern | Fix | Test |
+| --- | --- | --- |
+| Creator cannot trigger disputed visual review without publisher cooperation. | Added creator-only `submit_disputed_usage_evidence(release_id, url, sha256, note)`. It verifies the public visual with the same validator-derived raw-media SHA-256 commitment used for visual evidence, stores it as `disputed_usage`, moves an accepted release to `disputed`, and allows `request_consent_review` after the challenge window without publisher usage submission. | `test_creator_can_trigger_review_when_publisher_refuses_to_submit_usage` |
+| Evidence can be crowded out. | Replaced global first-N review selection with protected deterministic quotas: creator terms max 1, publisher usage max 1, creator disputed usage max 1, creator counter max 2, publisher counter max 2. Excess submissions are rejected with `EXPECTED_EVIDENCE_QUOTA_EXCEEDED`. | `test_evidence_quota_prevents_one_party_from_crowding_other_party` |
+| Competing visual evidence must reach validators. | `_review_consent` now receives the bounded package containing source, creator disputed usage when present, publisher usage when present, terms, and protected counter-evidence. If both visual usage records exist, both images are passed to semantic adjudication. | `test_competing_creator_and_publisher_visual_evidence_reaches_review` |
+| Expiry lifecycle must remain correct. | `recover_expired` still returns unsettled collateral to the publisher and now also covers an unsettled `disputed` release. | `test_publisher_can_recover_after_expiry` |
 
-**Review protection.** Before semantic adjudication, the same canonical representation is fetched again and compared to that verified commitment. Source/usage use raw media response bytes; terms/counter evidence use UTF-8 rendered text.
+## Integrity and consensus preservation
 
-**Mutation behavior.** A mismatch or unavailable representation returns `undetermined` with an integrity reason. No changed content is supplied to the semantic judge, and no semantic payout is made from substituted material.
+The contract still never trusts caller-provided hashes. Source, publisher usage, and creator disputed usage use `raw_media_bytes_v1`; terms and counter-evidence use `rendered_text_utf8_v1`. Submission verifies claimed SHA-256 through validator capture, and review re-fetches the same canonical representation before semantic adjudication. Unavailable evidence or commitment mismatch returns `undetermined`.
 
-**Tests.** `test_source_hash_mismatch_is_rejected`, `test_terms_usage_and_counter_hash_mismatches_are_rejected`, `test_correct_hash_is_accepted_and_recorded_as_verified`, `test_changed_source_or_evidence_cannot_reach_semantic_judgment`, `test_unchanged_verified_evidence_reaches_semantic_review`, and `test_integrity_mismatch_uses_undetermined_recovery_path`.
+Semantic adjudication still uses GenLayer comparative consensus through `gl.eq_principle.prompt_comparative`. External URLs, notes, and fetched content remain evidence only, never instructions.
 
-**Deployment/source.** StudioNet contract `0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9`; deployment transaction `0x1938ad7e95f1650dac0f57a6bb003eb1c650de3a86335fe23e53fe3e8560d5f6`. Final commit SHA is recorded after the accompanying documentation/UI cleanup is pushed.
+## Deployment/source
+
+Previous StudioNet contract: `0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9`.
+
+New deployment details, final commit SHA, transaction hash, and explorer link must be filled after the updated contract is committed and redeployed from this source.

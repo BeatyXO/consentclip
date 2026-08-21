@@ -132,6 +132,66 @@ class ConsentClipLifecycleTests(unittest.TestCase):
         kinds = [record["kind"] for record in json.loads(self.contract.get_evidence(release_id))]
         self.assertEqual(kinds, ["terms", "usage", "counter"])
 
+    def test_creator_can_trigger_review_when_publisher_refuses_to_submit_usage(self):
+        release_id = self.create()
+        self.sender(self.creator)
+        self.contract.submit_terms_evidence(release_id, "https://example.com/terms", HASH, "Approved campaign terms")
+        self.contract.submit_disputed_usage_evidence(
+            release_id, "https://example.com/disputed-live-use", HASH, "Creator found unauthorized live use"
+        )
+        self.assertEqual(self.release(release_id)["status"], "disputed")
+        self.close_challenge()
+        self.contract._review_consent = lambda *_: json.dumps({
+            "verdict_class": "material_breach", "confidence": 92, "reasoning": "Disputed visual is outside consent."
+        })
+        self.contract.request_consent_review(release_id)
+        release = self.release(release_id)
+        self.assertEqual(release["status"], "slashed")
+        self.assertEqual(release["verdict_class"], "material_breach")
+        self.assertEqual(TRANSFERS, [(self.creator, 100)])
+
+    def test_competing_creator_and_publisher_visual_evidence_reaches_review(self):
+        release_id = self.ready_for_review()
+        self.sender(self.creator)
+        self.contract.submit_disputed_usage_evidence(
+            release_id, "https://example.com/disputed-live-use", HASH, "Creator disputes a different live use"
+        )
+        captured = {}
+        def review(_release, evidence_items):
+            captured["kinds"] = [item["kind"] for item in evidence_items]
+            captured["urls"] = [item["url"] for item in evidence_items]
+            return json.dumps({"verdict_class": "minor_overreach", "confidence": 88, "reasoning": "Both visuals reviewed."})
+        self.contract._review_consent = review
+        self.close_challenge()
+        self.contract.request_consent_review(release_id)
+        self.assertIn("usage", captured["kinds"])
+        self.assertIn("disputed_usage", captured["kinds"])
+        self.assertIn("https://example.com/live-use", captured["urls"])
+        self.assertIn("https://example.com/disputed-live-use", captured["urls"])
+        self.assertEqual(self.release(release_id)["status"], "partial_release")
+
+    def test_evidence_quota_prevents_one_party_from_crowding_other_party(self):
+        release_id = self.ready_for_review()
+        self.sender(self.creator)
+        self.contract.submit_disputed_usage_evidence(
+            release_id, "https://example.com/disputed-live-use", HASH, "Protected creator visual"
+        )
+        self.contract.submit_counter_evidence(release_id, "https://example.com/creator-counter-1", HASH, "Creator counter one")
+        self.contract.submit_counter_evidence(release_id, "https://example.com/creator-counter-2", HASH, "Creator counter two")
+        with self.assertRaisesRegex(ValueError, "EXPECTED_EVIDENCE_QUOTA_EXCEEDED"):
+            self.contract.submit_counter_evidence(release_id, "https://example.com/creator-counter-3", HASH, "Creator counter three")
+        with self.assertRaisesRegex(ValueError, "EXPECTED_EVIDENCE_QUOTA_EXCEEDED"):
+            self.contract.submit_disputed_usage_evidence(release_id, "https://example.com/disputed-live-use-2", HASH, "Extra creator visual")
+        self.sender(self.publisher)
+        self.contract.submit_counter_evidence(release_id, "https://example.com/publisher-counter-1", HASH, "Publisher counter one")
+        self.contract.submit_counter_evidence(release_id, "https://example.com/publisher-counter-2", HASH, "Publisher counter two")
+        with self.assertRaisesRegex(ValueError, "EXPECTED_EVIDENCE_QUOTA_EXCEEDED"):
+            self.contract.submit_counter_evidence(release_id, "https://example.com/publisher-counter-3", HASH, "Publisher counter three")
+        kinds = [record["kind"] for record in json.loads(self.contract.get_evidence(release_id))]
+        self.assertEqual(kinds, ["terms", "usage", "disputed_usage", "counter", "counter", "counter", "counter"])
+        submitters = [record["submitted_by"] for record in json.loads(self.contract.get_evidence(release_id)) if record["kind"] == "counter"]
+        self.assertEqual(submitters, [self.creator, self.creator, self.publisher, self.publisher])
+
     def test_either_party_can_recover_an_undetermined_release(self):
         release_id = self.ready_for_review()
         self.close_challenge()
@@ -166,12 +226,22 @@ class ConsentClipLifecycleTests(unittest.TestCase):
         self.assertEqual(TRANSFERS, [(self.publisher, 100)])
 
     def test_publisher_can_recover_after_expiry(self):
-        release_id = self.ready_for_review()
-        self.gl.message_raw["datetime"] = "2026-02-01T00:00:00Z"
-        self.sender(self.publisher)
-        self.contract.recover_expired(release_id)
-        self.assertEqual(self.release(release_id)["status"], "recovered_expired")
-        self.assertEqual(TRANSFERS, [(self.publisher, 100)])
+        for with_creator_dispute in (False, True):
+            with self.subTest(with_creator_dispute=with_creator_dispute):
+                TRANSFERS.clear()
+                self.gl.message_raw["datetime"] = "2026-01-10T12:00:00Z"
+                release_id = self.ready_for_review()
+                if with_creator_dispute:
+                    self.sender(self.creator)
+                    self.contract.submit_disputed_usage_evidence(
+                        release_id, "https://example.com/disputed-live-use", HASH, "Unsettled disputed use"
+                    )
+                    self.assertEqual(self.release(release_id)["status"], "disputed")
+                self.gl.message_raw["datetime"] = "2026-02-01T00:00:00Z"
+                self.sender(self.publisher)
+                self.contract.recover_expired(release_id)
+                self.assertEqual(self.release(release_id)["status"], "recovered_expired")
+                self.assertEqual(TRANSFERS, [(self.publisher, 100)])
 
     def test_source_hash_mismatch_is_rejected(self):
         self.sender(self.creator)

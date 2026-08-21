@@ -1,5 +1,5 @@
-export type ReleaseStatus = "draft" | "awaiting_publisher" | "active" | "usage_submitted" | "released" | "partial_release" | "slashed" | "undetermined" | "recovered_unaccepted" | "recovered_undetermined" | "recovered_expired";
-export type EvidenceKind = "terms" | "usage" | "counter";
+export type ReleaseStatus = "draft" | "awaiting_publisher" | "active" | "usage_submitted" | "disputed" | "released" | "partial_release" | "slashed" | "undetermined" | "recovered_unaccepted" | "recovered_undetermined" | "recovered_expired";
+export type EvidenceKind = "terms" | "usage" | "disputed_usage" | "counter";
 export type ConsentVerdict = "within_scope" | "minor_overreach" | "material_breach" | "undetermined";
 export type ConsentRelease = {
   id: number; title: string; mediaType: string; creator: string; publisher: string; deposit: bigint;

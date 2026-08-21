@@ -2,9 +2,9 @@ import type { ConsentRelease, ConsentVerdict, EvidenceItem, EvidenceKind, Releas
 import type { CustodyCase } from "@/lib/types";
 export type ContractRelease = { id?: string; title?: string; media_type?: string; creator?: string; publisher?: string; deposit?: string; status?: string; expires_at?: string; created_at?: string; verdict_class?: string; release_to_publisher?: string; release_to_creator?: string; confidence?: number; reasoning?: string };
 export type ContractEvidence = { id?: string; release_id?: string; kind?: string; url?: string; sha256?: string; verified_sha256?: string; capture_mode?: string; integrity_status?: string; note?: string; submitted_by?: string; submitted_at?: string };
-const statuses: ReleaseStatus[] = ["draft", "awaiting_publisher", "active", "usage_submitted", "released", "partial_release", "slashed", "undetermined", "recovered_unaccepted", "recovered_undetermined", "recovered_expired"];
+const statuses: ReleaseStatus[] = ["draft", "awaiting_publisher", "active", "usage_submitted", "disputed", "released", "partial_release", "slashed", "undetermined", "recovered_unaccepted", "recovered_undetermined", "recovered_expired"];
 const verdicts: ConsentVerdict[] = ["within_scope", "minor_overreach", "material_breach", "undetermined"];
-const evidenceKinds: EvidenceKind[] = ["terms", "usage", "counter"];
+const evidenceKinds: EvidenceKind[] = ["terms", "usage", "disputed_usage", "counter"];
 export function parseContractList<T>(value: unknown): T[] { if (Array.isArray(value)) return value as T[]; if (typeof value !== "string" || !value.trim()) return []; const result = JSON.parse(value) as unknown; return Array.isArray(result) ? result as T[] : []; }
 export function toConsentRelease(item: ContractRelease, evidence: EvidenceItem[] = []): ConsentRelease {
   const status = statuses.includes(item.status as ReleaseStatus) ? item.status as ReleaseStatus : "draft";
