@@ -170,6 +170,32 @@ class ConsentClipLifecycleTests(unittest.TestCase):
         self.assertIn("https://example.com/disputed-live-use", captured["urls"])
         self.assertEqual(self.release(release_id)["status"], "partial_release")
 
+    def test_publisher_can_add_usage_after_creator_already_disputed(self):
+        release_id = self.create()
+        self.sender(self.creator)
+        self.contract.submit_terms_evidence(release_id, "https://example.com/terms", HASH, "Approved campaign terms")
+        self.contract.submit_disputed_usage_evidence(
+            release_id, "https://example.com/disputed-live-use", HASH, "Creator submitted the disputed use first"
+        )
+        self.assertEqual(self.release(release_id)["status"], "disputed")
+        self.sender(self.publisher)
+        self.contract.submit_usage_evidence(
+            release_id, "https://example.com/live-use", HASH, "Publisher submitted claimed usage after dispute"
+        )
+        self.assertEqual(self.release(release_id)["status"], "disputed")
+        captured = {}
+        def review(_release, evidence_items):
+            captured["kinds"] = [item["kind"] for item in evidence_items]
+            captured["urls"] = [item["url"] for item in evidence_items]
+            return json.dumps({"verdict_class": "within_scope", "confidence": 89, "reasoning": "Reverse-order visuals reviewed."})
+        self.contract._review_consent = review
+        self.close_challenge()
+        self.contract.request_consent_review(release_id)
+        self.assertEqual(captured["kinds"][:3], ["terms", "usage", "disputed_usage"])
+        self.assertIn("https://example.com/live-use", captured["urls"])
+        self.assertIn("https://example.com/disputed-live-use", captured["urls"])
+        self.assertEqual(self.release(release_id)["status"], "released")
+
     def test_evidence_quota_prevents_one_party_from_crowding_other_party(self):
         release_id = self.ready_for_review()
         self.sender(self.creator)

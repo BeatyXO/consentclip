@@ -222,14 +222,15 @@ class ConsentClip(gl.Contract):
         release = self._release(release_id)
         if self._sender() != release["publisher"]:
             raise gl.vm.UserError("EXPECTED_ONLY_PUBLISHER")
-        if release["status"] not in ("active", "usage_submitted"):
+        if release["status"] not in ("active", "usage_submitted", "disputed"):
             raise gl.vm.UserError("EXPECTED_USAGE_NOT_OPEN")
         if not self._before(release["challenge_ends_at"]):
             raise gl.vm.UserError("EXPECTED_EVIDENCE_WINDOW_CLOSED")
         if not self._has_evidence_kind(release_id, "terms"):
             raise gl.vm.UserError("EXPECTED_TERMS_EVIDENCE_FIRST")
         self._add_evidence(release_id, "usage", url, sha256, note)
-        release["status"] = "usage_submitted"
+        if release["status"] != "disputed":
+            release["status"] = "usage_submitted"
         self.releases[release_id] = self._json(release)
 
     @gl.public.write
