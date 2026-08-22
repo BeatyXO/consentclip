@@ -10,7 +10,8 @@
     "lint": "eslint app components lib scripts --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "verify:schema": "tsx --env-file=.env.local scripts/verify-schema.ts",
-    "verify:live-cycle": "tsx --env-file=.env.local scripts/live-consent-clip-cycle.ts"
+    "verify:live-cycle": "tsx --env-file=.env.local scripts/live-consent-clip-cycle.ts",
+    "verify:steward-live": "tsx --env-file=.env.local scripts/verify-steward-studionet.ts"
   },
   "dependencies": {
     "@swc/helpers": "^0.5.15",
