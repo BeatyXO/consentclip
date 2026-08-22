@@ -20,8 +20,10 @@ Review evidence is bounded by protected slots, not by global insertion order: cr
 
 ## Live StudioNet contract
 
-- Contract: [`0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9`](https://genlayer-explorer.vercel.app/address/0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9)
-- Deployment transaction: [`0x1938ad7e95f1650dac0f57a6bb003eb1c650de3a86335fe23e53fe3e8560d5f6`](https://genlayer-explorer.vercel.app/tx/0x1938ad7e95f1650dac0f57a6bb003eb1c650de3a86335fe23e53fe3e8560d5f6)
+- Contract: [`0x1bB56165db95111aBB409a920e6c44b64b398588`](https://genlayer-explorer.vercel.app/address/0x1bB56165db95111aBB409a920e6c44b64b398588)
+- Deployment transaction: [`0x7c34d5c64b018bc9b714b32a8f64e4553462d26ce037634ca6f8a77211e25c84`](https://genlayer-explorer.vercel.app/tx/0x7c34d5c64b018bc9b714b32a8f64e4553462d26ce037634ca6f8a77211e25c84)
+- Deployed source commit: `0555de6a8308f43f15c0f524288f490c2e0bd95a`
+- Source/deployment parity: `contracts/consent_clip.py` at the final repository commit is unchanged from the deployed source commit above.
 
 ## Release workflow
 

@@ -18,6 +18,15 @@ Semantic adjudication still uses GenLayer comparative consensus through `gl.eq_p
 
 ## Deployment/source
 
-Previous StudioNet contract: `0x9C875Bd2643a73fB6A618f7DE22c70F8968256d9`.
+StudioNet contract: `0x1bB56165db95111aBB409a920e6c44b64b398588`.
 
-New deployment details, final commit SHA, transaction hash, and explorer link must be filled after the updated contract is committed and redeployed from this source.
+Deployment transaction: `0x7c34d5c64b018bc9b714b32a8f64e4553462d26ce037634ca6f8a77211e25c84`.
+
+Explorer:
+
+- Contract: https://genlayer-explorer.vercel.app/address/0x1bB56165db95111aBB409a920e6c44b64b398588
+- Transaction: https://genlayer-explorer.vercel.app/tx/0x7c34d5c64b018bc9b714b32a8f64e4553462d26ce037634ca6f8a77211e25c84
+
+Deployed source commit: `0555de6a8308f43f15c0f524288f490c2e0bd95a`.
+
+Source/deployment parity: the final repository commit changes deployment documentation/config only after deployment; `contracts/consent_clip.py` is unchanged from deployed source commit `0555de6a8308f43f15c0f524288f490c2e0bd95a`.
